@@ -45,7 +45,7 @@ function Animation.from_sequence(tex_name, start_tex, finish_tex, frame_duration
 end
 
 function Animation:get_frame(delta, loop)
-	loop = loop or true
+	if loop == nil then loop = true end
 	local frame_number = 0
 	if loop then
 		frame_number = 1 + floor(delta) % self.data.anim_length

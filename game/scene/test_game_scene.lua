@@ -94,8 +94,7 @@ end
 
 function Ball:draw()
 
-	graphics.set_color(1, 1, 1, 1)
-	graphics.draw_centered(ball_anim:get_frame(self.elapsed, true))
+	graphics.draw_centered(ball_anim:get_frame(self.elapsed, false))
 
 end
 
