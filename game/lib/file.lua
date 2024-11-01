@@ -44,7 +44,7 @@ function file.get_files_of_type(folder, extension, recursive)
 end
 
 function file.filename_to_asset_name(filename, extension)
-	return string.gsub(string.match(filename, "/(.+)." .. extension .. "$"), "/", ".")
+	return string.gsub(string.match(filename, "/(.+)." .. extension .. "$"), "/", "_")
 end
 
 function file.get_modules(path, t)

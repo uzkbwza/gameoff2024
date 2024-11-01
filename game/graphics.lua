@@ -192,9 +192,6 @@ function graphics.main_viewport_draw()
 
 	graphics.set_canvas()
 
-	-- graphics.draw(graphics.canvas2, 0, 0, 0, 1, 1)
-
-
 	debug.printlines(0, 0)
 end
 

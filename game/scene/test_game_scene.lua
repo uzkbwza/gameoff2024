@@ -25,7 +25,7 @@ function Ball:new(x, y)
 	self.velocity = Vec2()
 	self.texture = textures.ball
 	if i % 2 == 0 then
-		self.texture = textures.subfolder.ball2
+		self.texture = textures.subfolder_ball2
 	end
 
 	i = i + 1
