@@ -197,6 +197,9 @@ end
 
 function graphics.update(dt)
 	graphics.sequencer:update(dt)
+	if input.fullscreen_toggle_pressed then 
+		love.window.setFullscreen( not love.window.getFullscreen() )
+	end
 end
 
 function graphics.draw_loop()

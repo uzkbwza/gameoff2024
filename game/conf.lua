@@ -83,6 +83,10 @@ local conf = {
 			keyboard = {"right"}
 		},
 
+		fullscreen_toggle = {
+			keyboard = {"f11", {"ralt", "return"}, {"lalt", "return"}}
+		},
+
 		debug_draw_toggle = {
 			debug = true,
 			keyboard = { { "lctrl", "d" }, { "rctrl", "d" } }
