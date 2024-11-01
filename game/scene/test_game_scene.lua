@@ -93,8 +93,9 @@ function Ball:fixed_update(dt)
 end
 
 function Ball:draw()
-
-	graphics.draw_centered(ball_anim:get_frame(self.elapsed))
+	self.scale.x = 2 + sin(self.elapsed * 0.35) * 1
+	self.scale.y = 2 + cos(self.elapsed * 0.5) * 1
+	graphics.draw_centered(ball_anim:get_frame(self.elapsed, "loop"))
 
 end
 
@@ -138,7 +139,7 @@ function TestGameScene:enter()
 	self.paddle = self:add_object(Paddle(0, 60))
 	-- self.camera:follow(self.paddle)
 	-- self.paddle = self:add_object(Paddle(conf.viewport_size.x / 2, conf.viewport_size.y / 2 + 90))
-	for i= 1, 1 do
+	for i= 1, 1000 do
 		local ball = self:add_object(Ball(0, 45))
 		ball.paddle = self.paddle
 		-- ball.velocity = Vec2(1, 2000):normalize_in_place():mul_in_place(BALL_SPEED * rng.randfn(1.0, 0.2))

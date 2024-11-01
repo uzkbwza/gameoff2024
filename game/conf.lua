@@ -42,7 +42,7 @@ local conf = {
 	fixed_tickrate = 60,
 	max_delta = 1,
 	max_fixed_ticks_per_frame = 5,
-	enable_fixed_timestep_interpolation = false,
+	enable_fixed_timestep_interpolation = true,
 
 	-- assets
 	asset_folder_scan = {

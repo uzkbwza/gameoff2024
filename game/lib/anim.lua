@@ -44,13 +44,16 @@ function Animation.from_sequence(tex_name, start_tex, finish_tex, frame_duration
 	return Animation(frames)
 end
 
-function Animation:get_frame(delta, loop)
-	if loop == nil then loop = true end
+function Animation:get_frame(delta, loop_type)
 	local frame_number = 0
-	if loop then
+	if loop_type == "loop" then
 		frame_number = 1 + floor(delta) % self.data.anim_length
-	else
+	elseif loop_type == "clamp" then
 		frame_number = clamp(floor(delta), 1, self.data.anim_length)
+	elseif loop_type == nil then
+		frame_number = floor(delta)
+	else
+		error("invalid loop type passed: " .. tostring(loop_type))
 	end
 
 	return self.data.frames[frame_number]
@@ -71,8 +74,7 @@ function Animation:process_frame_table(frames)
 	table.sort(frame_updates)
 
 	local anim_length = 1
-	for update, frame in ipairs(frame_updates) do
-		local current = frame_updates[update]
+	for update, current in ipairs(frame_updates) do
 		local next = frame_updates[update+1]
 		if next then 
 			for j=current,next - 1 do 

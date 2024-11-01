@@ -5,31 +5,40 @@ local Camera = require("obj.camera")
 local elapsed = 0.0
 
 -- Helper functions
-local function add_to_array(array, obj)
-    for i = 1, #array do
-        if array[i] == obj then
-            return -- Object already in array
-        end
+local function add_to_array(array, indices, obj)
+    if indices[obj] then
+        return -- Object already in array
     end
     table.insert(array, obj)
+    indices[obj] = #array
 end
 
-local function remove_from_array(array, obj)
-    for i = #array, 1, -1 do
-        if array[i] == obj then
-            table.remove(array, i)
-            return
-        end
+local function remove_from_array(array, indices, obj)
+    local index = indices[obj]
+    if not index then
+        return -- Object not in array
     end
+    local last = array[#array]
+    array[index] = last
+    indices[last] = index
+    array[#array] = nil
+    indices[obj] = nil
 end
 
 function GameScene:new()
     GameScene.super.new(self)
 
     self.objects = {}
+    self.objects_indices = {}
+
     self.fixed_update_objects = {}
+    self.fixed_update_indices = {}
+
     self.update_objects = {}
+    self.update_indices = {}
+
     self.draw_objects = {}
+    self.draw_indices = {}
 
     -- function to sort draw objects
     self.draw_sort = nil
@@ -87,7 +96,6 @@ function GameScene:fixed_update(dt)
 end
 
 function GameScene:draw()
-    
     if self.draw_sort then
         table.sort(self.draw_objects, self.draw_sort)
     end
@@ -145,23 +153,23 @@ end
 
 function GameScene:add_object(obj)
     obj.scene = self
-    table.insert(self.objects, obj)
+    add_to_array(self.objects, self.objects_indices, obj)
 
     if not obj.static then
-        table.insert(self.fixed_update_objects, obj)
-        table.insert(self.update_objects, obj)
+        add_to_array(self.fixed_update_objects, self.fixed_update_indices, obj)
+        add_to_array(self.update_objects, self.update_indices, obj)
     end
 
     if obj.draw then
-        table.insert(self.draw_objects, obj)
+        add_to_array(self.draw_objects, self.draw_indices, obj)
     end
 
     if obj.visibility_changed then
         obj.visibility_changed:connect(function(visible)
             if visible then
-                add_to_array(self.draw_objects, obj)
+                add_to_array(self.draw_objects, self.draw_indices, obj)
             else
-                remove_from_array(self.draw_objects, obj)
+                remove_from_array(self.draw_objects, self.draw_indices, obj)
             end
         end)
     end
@@ -169,9 +177,9 @@ function GameScene:add_object(obj)
     if obj.update_changed then
         obj.update_changed:connect(function(update)
             if update then
-                add_to_array(self.update_objects, obj)
+                add_to_array(self.update_objects, self.update_indices, obj)
             else
-                remove_from_array(self.update_objects, obj)
+                remove_from_array(self.update_objects, self.update_indices, obj)
             end
         end)
     end
@@ -179,9 +187,9 @@ function GameScene:add_object(obj)
     if obj.fixed_update_changed then
         obj.fixed_update_changed:connect(function(fixed_update)
             if fixed_update then
-                add_to_array(self.fixed_update_objects, obj)
+                add_to_array(self.fixed_update_objects, self.fixed_update_indices, obj)
             else
-                remove_from_array(self.fixed_update_objects, obj)
+                remove_from_array(self.fixed_update_objects, self.fixed_update_indices, obj)
             end
         end)
     end
@@ -194,10 +202,10 @@ end
 
 function GameScene:remove_object(obj)
     obj.scene = nil
-    remove_from_array(self.objects, obj)
-    remove_from_array(self.fixed_update_objects, obj)
-    remove_from_array(self.update_objects, obj)
-    remove_from_array(self.draw_objects, obj)
+    remove_from_array(self.objects, self.objects_indices, obj)
+    remove_from_array(self.fixed_update_objects, self.fixed_update_indices, obj)
+    remove_from_array(self.update_objects, self.update_indices, obj)
+    remove_from_array(self.draw_objects, self.draw_indices, obj)
 end
 
 return GameScene

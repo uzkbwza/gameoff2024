@@ -197,7 +197,7 @@ end
 
 function graphics.update(dt)
 	graphics.sequencer:update(dt)
-	if input.fullscreen_toggle_pressed then 
+	if input.fullscreen_toggle_pressed then
 		love.window.setFullscreen( not love.window.getFullscreen() )
 	end
 end
@@ -271,10 +271,16 @@ function graphics.draw_quad(quad, x, y, r, sx, sy, ox, oy, kx, ky)
 end
 
 function graphics.draw(texture, x, y, r, sx, sy, ox, oy, kx, ky)
+	if texture == nil then
+		return
+	end
 	love.graphics.draw(texture, x, y, r, sx, sy, ox, oy, kx, ky)
 end
 
 function graphics.draw_centered(texture, x, y, r, sx, sy, ox, oy, kx, ky)
+	if texture == nil then
+		return
+	end
 	
 	ox = ox or 0
 	oy = oy or 0
@@ -361,7 +367,5 @@ end
 function graphics.set_shader(shader)
 	love.graphics.setShader(shader)
 end
-
----
 
 return graphics
