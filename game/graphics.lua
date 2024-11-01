@@ -272,6 +272,7 @@ function graphics.draw(texture, x, y, r, sx, sy, ox, oy, kx, ky)
 end
 
 function graphics.draw_centered(texture, x, y, r, sx, sy, ox, oy, kx, ky)
+	
 	ox = ox or 0
 	oy = oy or 0
 	local offset_x = texture:getWidth() / 2

@@ -22,6 +22,7 @@
 		"rng",
 		"textures",
 		"gametime",
-		"global_input"
+		"global_input",
+		"usersettings"
 	],
 }

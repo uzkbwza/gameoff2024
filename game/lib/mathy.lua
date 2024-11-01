@@ -1,6 +1,6 @@
 ---@diagnostic disable: lowercase-global
-log, floor, ceil, min, abs, sqrt, cos, sin, atan2, pi, max, huge, deg, rad, tau, pow
-= math.log, math.floor, math.ceil, math.min, math.abs, math.sqrt, math.cos, math.sin, math.atan2, math.pi, math.max, math.huge, math.deg, math.rad, math.pi * 2, math.pow
+log, floor, ceil, min, abs, sqrt, cos, sin, atan2, pi, max, deg, rad, tau, pow
+= math.log, math.floor, math.ceil, math.min, math.abs, math.sqrt, math.cos, math.sin, math.atan2, math.pi, math.max, math.deg, math.rad, math.pi * 2, math.pow
 
 
 function clamp(x, min, max)

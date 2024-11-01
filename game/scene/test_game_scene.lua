@@ -16,6 +16,26 @@ local BOUNDS = {
 	ystart = -conf.viewport_size.y/2,
 	yend = conf.viewport_size.y/2,
 }
+
+
+-- local ball_anim = Animation(
+-- 	1, textures.ball1,
+-- 	5, textures.ball2,
+-- 	9, textures.ball3,
+-- 	13, "end"
+-- )
+
+
+-- local ball_anim = Animation(
+-- 	1, "ball1",
+-- 	5, "ball2",
+-- 	9, "ball3",
+-- 	13, "end"
+-- )
+
+-- same as above
+local ball_anim = Animation.from_sequence("ball", 1, 3, 4)
+
 local Ball = GameObject:extend()
 
 local i = 0
@@ -23,12 +43,13 @@ local i = 0
 function Ball:new(x, y)
 	Ball.super.new(self, x, y)
 	self.velocity = Vec2()
-	self.texture = textures.ball
+	self.texture = textures.ball1
 	if i % 2 == 0 then
-		self.texture = textures.subfolder_ball2
+		self.texture = textures.ball2
 	end
 
 	i = i + 1
+	self:add_elapsed_time()
 	self:add_elapsed_ticks()
 	self.tick = rng(0, 1)
 end
@@ -74,7 +95,7 @@ end
 function Ball:draw()
 
 	graphics.set_color(1, 1, 1, 1)
-	graphics.draw_centered(self.texture)
+	graphics.draw_centered(ball_anim:get_frame(self.elapsed, true))
 
 end
 
@@ -118,14 +139,12 @@ function TestGameScene:enter()
 	self.paddle = self:add_object(Paddle(0, 60))
 	-- self.camera:follow(self.paddle)
 	-- self.paddle = self:add_object(Paddle(conf.viewport_size.x / 2, conf.viewport_size.y / 2 + 90))
-	for i= 1, 1000 do
+	for i= 1, 1 do
 		local ball = self:add_object(Ball(0, 45))
 		ball.paddle = self.paddle
 		-- ball.velocity = Vec2(1, 2000):normalize_in_place():mul_in_place(BALL_SPEED * rng.randfn(1.0, 0.2))
 		ball.velocity = rng.random_vec2():normalize_in_place():mul_in_place(BALL_SPEED * rng.randfn(1.0, 0.1))
 	end
-
-	local s = self.sequencer
 end
 
 function TestGameScene:draw()

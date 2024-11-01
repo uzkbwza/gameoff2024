@@ -63,17 +63,17 @@ function GameObject:add_fixed_sequencer()
 end
 
 function GameObject:add_elapsed_time()
-	self.elapsed = 0
+	self.elapsed = 1
 	table.insert(self._update_functions, function(dt) self.elapsed = self.elapsed + dt end)
 end
 
 function GameObject:add_elapsed_ticks()
-	self.tick = 0
+	self.tick = 1
 	table.insert(self._fixed_update_functions, function(dt) self.tick = self.tick + 1 end)
 end
 
 function GameObject:add_elapsed_frames()
-	self.frame = 0
+	self.frame = 1
 	table.insert(self._update_functions, function(dt) self.frame = self.frame + 1 end)
 end
 

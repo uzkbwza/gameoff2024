@@ -15,6 +15,7 @@ require "lib.sequencer"
 require "lib.random_crap"
 
 require "obj.game_object"
+require "lib.anim"
 
 require "datastructure.bst"
 require "datastructure.bst2"
