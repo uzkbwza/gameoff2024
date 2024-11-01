@@ -2,23 +2,23 @@
 	"folders": [
 		{
 			"name": "Game",
-			"path": "./game",
+			"path": "game"
 		},
 		{
 			"name": "Tools",
-			"path": "./tools",
+			"path": "tools"
 		},
 		{
 			"name": "Resources",
-			"path": "./resources",
+			"path": "resources"
 		},
 		{
 			"name": "Builds",
-			"path": "./builds",
+			"path": "builds"
 		},
 		{
 			"name": "Root",
-			"path": ".",
+			"path": "."
 		}
 	]
 }

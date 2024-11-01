@@ -5,4 +5,23 @@
 	],
 	"Lua.runtime.version": "LuaJIT",
 	"Lua.workspace.checkThirdParty": false,
+	"Lua.diagnostics.globals": [
+		"dbg",
+		"file",
+		"render",
+		"game",
+		"conf",
+		"filesystem",
+		"input",
+		"effects",
+		"easing",
+		"ease",
+		"seconds",
+		"graphics",
+		"palette",
+		"rng",
+		"textures",
+		"gametime",
+		"global_input"
+	],
 }
