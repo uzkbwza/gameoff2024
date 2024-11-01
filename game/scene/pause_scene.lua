@@ -16,7 +16,7 @@ end
 function PauseScene:draw()
 	PauseScene.super.draw(self)
 
-	graphics.print("PAUSED", self.viewport_center.x, self.viewport_center.y)
+	graphics.print("PAUSED", 0, 0)
 end
 
 function PauseScene:enter()
