@@ -46,7 +46,7 @@ function input.process(table)
 	for action, keys in pairs(table.mapping) do
 		local pressed = false
 
-		if action.debug and not conf.debug then
+		if action.debug and not debug.enabled then
 			goto skip
 		end
 
