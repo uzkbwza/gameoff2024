@@ -9,7 +9,7 @@ local PADDLE_WIDTH = 70
 local PADDLE_HEIGHT = 12
 local BALL_SPEED = 2
 local GRAVITY = 0.0
-local PADDLE_SPEED = 2
+local PADDLE_SPEED = 6
 local BOUNDS = {
 	xstart = -conf.viewport_size.x/2,
 	xend = conf.viewport_size.x/2,
@@ -109,10 +109,10 @@ function Paddle:fixed_update(dt)
 	local input = self:get_input_table()
 
 	if input.move_left then
-		self:move(-PADDLE_SPEED * dt, 0)
+		self:move(-PADDLE_SPEED * dt * input.move_left_amount, 0)
 	end
 	if input.move_right then
-		self:move(PADDLE_SPEED * dt, 0)
+		self:move(PADDLE_SPEED * dt * input.move_right_amount, 0)
 	end
 
 	if self.pos.x < BOUNDS.xstart then
@@ -139,7 +139,7 @@ function TestGameScene:enter()
 	self.paddle = self:add_object(Paddle(0, 60))
 	-- self.camera:follow(self.paddle)
 	-- self.paddle = self:add_object(Paddle(conf.viewport_size.x / 2, conf.viewport_size.y / 2 + 90))
-	for i= 1, 1000 do
+	for i= 1, 1 do
 		local ball = self:add_object(Ball(0, 45))
 		ball.paddle = self.paddle
 		-- ball.velocity = Vec2(1, 2000):normalize_in_place():mul_in_place(BALL_SPEED * rng.randfn(1.0, 0.2))
@@ -150,7 +150,7 @@ end
 function TestGameScene:draw()
 	graphics.push()
 	graphics.origin()
-	graphics.draw(textures.bg, 0, 0, 0, 1, 1)
+	-- graphics.draw(textures.bg, 0, 0, 0, 1, 1)
 	graphics.pop()
 	TestGameScene.super.draw(self)
 

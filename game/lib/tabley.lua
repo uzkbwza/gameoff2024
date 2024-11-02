@@ -35,7 +35,15 @@ function tabley.is_empty(t)
 	return next(t) == nil
 end
 
+function tabley.fast_remove_at(t, index)
+	local length = #t
+	t[index] = t[length]
+	t[length] = nil
+end
+
 function tabley.fast_remove(t, fnKeep)
+	if type(fnKeep) == "number" then return tabley.fast_remove_at(t, fnKeep) end 
+
 	if tabley.is_empty(t) then return t end
 
     local j, n = 1, #t;

@@ -101,3 +101,11 @@ function love.draw()
 
 	game.draw()
 end
+
+function love.joystickadded(joystick)
+	input.joystick_added(joystick)
+end
+
+function love.joystickremoved(joystick)
+	input.joystick_removed(joystick)
+end

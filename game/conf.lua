@@ -32,11 +32,11 @@ end
 local conf = {
 	-- display
 	viewport_size = Vec2(
-		240,
-		160
+		288,
+		192
 	),
 
-	display_scale = 3,
+	display_scale = 4,
 
 	-- delta
 	fixed_tickrate = 60,
@@ -56,45 +56,79 @@ local conf = {
 	-- input
 	input_actions = {
 		primary = {
-			keyboard = { "z", "return" }
+			keyboard = { "z", "return" },
+			joystick = { "a" }
 		},
 
 		secondary = {
-			keyboard = { "x", "rshift" }
+			keyboard = { "x", "rshift" },
+			joystick = { "b" }
 		},
 
 		menu = {
-			keyboard = { "escape", }
+			keyboard = { "escape", },
+			joystick = { "start" }
 		},
 
 		move_up = {
-			keyboard = {"up"}
+			keyboard = {"up"},
+			joystick = {"dpup"},
+			joystick_axis = {
+				axis = "lefty",
+				dir = -1
+			}
 		},
 
 		move_down = {
-			keyboard = {"down"}
+			keyboard = {"down"},
+			joystick = {"dpdown"},
+			joystick_axis = {
+				axis = "lefty",
+				dir = 1
+			}
+
 		},
 
 		move_left = {
-			keyboard = {"left"}
+			keyboard = {"left"},
+			joystick = {"dpleft"},
+			joystick_axis = {
+				axis = "leftx",
+				dir = -1
+			}
 		},
 
 		move_right = {
-			keyboard = {"right"}
+			keyboard = {"right"},
+			joystick = {"dpright"},
+			joystick_axis = {
+				axis = "leftx",
+				dir = 1
+			}
 		},
 
 		fullscreen_toggle = {
-			keyboard = {"f11", {"ralt", "return"}, {"lalt", "return"}}
+			keyboard = {
+				"f11",
+				{"ralt", "return"},
+				{"lalt", "return"}
+			}
 		},
 
 		debug_draw_toggle = {
 			debug = true,
-			keyboard = { { "lctrl", "d" }, { "rctrl", "d" } }
+			keyboard = { 
+				{ "lctrl", "d" }, 
+				{ "rctrl", "d" } 
+			}
 		},
 
 		debug_shader_toggle = {
 			debug = true,
-			keyboard = { {"lctrl", "s"}, {"rctrl", "s"}}
+			keyboard = { 
+				{"lctrl", "s"}, 
+				{"rctrl", "s"}
+			}
 		}
 	},
 
