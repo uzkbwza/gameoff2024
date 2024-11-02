@@ -118,6 +118,7 @@ function GameObject:bump_init(info_table, filter)
 	self.collision_rect = (info_table.rect + self.pos) or Rect.centered(self.pos.x, self.pos.y, 0, 0)
 	self.move_to = GameObject.move_to_bump
 	self.bump_filter = filter
+	self.bump_filter_checks = {}
 	self.bump_world = nil
 end
 
@@ -131,26 +132,6 @@ function GameObject:set_bump_world(world)
 	world:add(self, self.pos.x - self.collision_rect.width / 2, self.pos.y - self.collision_rect.height / 2, self.collision_rect.width, self.collision_rect.height)
 end
 
-<<<<<<< HEAD
-function GameObject.move_to_bump(object, x, y, filter, noclip)
-	filter = filter or object.filter
-	if noclip then 
-		object.pos.x = x
-		object.pos.y = y
-		object.moved:emit()
-		return
-	end
-	local actual_x, actual_y, collisions, num_collisions = object.bump_world:move(object, x - object.collision_rect.width / 2, y - object.collision_rect.height / 2, filter)
-	object.pos.x = actual_x + object.collision_rect.width / 2
-	object.pos.y = actual_y + object.collision_rect.height / 2
-
-	for i = 1, num_collisions do
-		local col = collisions[i]
-		object:process_collision(col.other, col.dx, col.dy)
-	end
-
-	object.moved:emit()
-=======
 function GameObject:move_to_bump(x, y, filter, noclip)
 	filter = filter or self.filter
 	if noclip then 
@@ -169,7 +150,6 @@ function GameObject:move_to_bump(x, y, filter, noclip)
 	end
 
 	self.moved:emit()
->>>>>>> 53e2d75 (aabb collisions)
 end
 
 function GameObject:process_collision(other, dx, dy)
@@ -189,7 +169,7 @@ function GameObject:movev_to(v)
 end
 
 function GameObject:tp_to(x, y)
-	self:move_to(x, y)
+	self:move_to(x, y, nil, true)
 	self:reset_interpolation()
 end
 
