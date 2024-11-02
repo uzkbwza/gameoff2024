@@ -23,6 +23,7 @@
 		"textures",
 		"gametime",
 		"global_input",
-		"usersettings"
+		"usersettings",
+		"audio"
 	],
 }

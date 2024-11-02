@@ -1,5 +1,3 @@
-local GameScene = require("scene.game_scene")
-
 local PauseScene = GameScene:extend()
 
 function PauseScene:new()

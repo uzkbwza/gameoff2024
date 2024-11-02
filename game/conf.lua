@@ -1,5 +1,7 @@
 ---@diagnostic disable: lowercase-global
+
 Object = require "lib.object"
+
 table = require "lib.tabley"
 string = require "lib.stringy"
 debug = require "debuggy"
@@ -10,11 +12,13 @@ usersettings = require "usersettings"
 
 require "lib.mathy"
 require "lib.vector"
+require "lib.rect"
 require "lib.signal"
 require "lib.sequencer"
 require "lib.random_crap"
 
-require "obj.game_object"
+GameObject = require "obj.game_object"
+GameScene = require "scene.game_scene"
 require "lib.anim"
 
 require "datastructure.bst"

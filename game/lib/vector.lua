@@ -68,6 +68,9 @@ end
 
 function Vec2:normalized()
 	local mag = self:magnitude()
+	if mag == 0 then
+		return Vec2(0, 0)
+	end
 	return Vec2(self.x / mag, self.y / mag)
 end
 
@@ -206,6 +209,9 @@ end
 
 function Vec3:normalized()
 	local mag = self:magnitude()
+	if mag == 0 then
+		return Vec3(0, 0, 0)
+	end
 	return Vec3(self.x / mag, self.y / mag, self.z / mag)
 end
 
@@ -310,6 +316,12 @@ end
 
 function Vec2:normalize_in_place()
     local mag = self:magnitude()
+	if mag == 0 then
+		self.x = 0
+		self.y = 0
+		return self
+	end
+	
     self.x = self.x / mag
     self.y = self.y / mag
     return self
@@ -379,6 +391,12 @@ end
 
 function Vec3:normalize_in_place()
     local mag = self:magnitude()
+	if mag == 0 then
+		self.x = 0
+		self.y = 0
+		self.z = 0
+		return self
+	end
     self.x = self.x / mag
     self.y = self.y / mag
     self.z = self.z / mag
@@ -502,6 +520,9 @@ end
 
 function vec2_normalized(x, y)
     local mag = vec2_magnitude(x, y)
+	if mag == 0 then
+		return 0, 0
+	end
     return x / mag, y / mag
 end
 
@@ -741,11 +762,17 @@ end
 
 function vec3_normalized(x, y, z)
     local mag = vec3_magnitude(x, y, z)
+	if mag == 0 then
+		return 0, 0, 0
+	end
     return x / mag, y / mag, z / mag
 end
 
 function vec3_normalized_table(a)
     local mag = vec3_magnitude_table(a)
+	if mag == 0 then
+		return 0, 0, 0
+	end
     return a.x / mag, a.y / mag, a.z / mag
 end
 

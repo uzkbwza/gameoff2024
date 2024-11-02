@@ -48,6 +48,7 @@ function file.filename_to_asset_name(filename, extension)
 end
 
 function file.get_modules(path, t)
+	t = t or {}
 	for _, v in ipairs(love.filesystem.getDirectoryItems(path)) do
 		if v:sub(-4) == ".lua" then
 			local s = v:sub(1, -5)

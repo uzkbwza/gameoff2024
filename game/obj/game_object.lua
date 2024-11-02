@@ -1,4 +1,4 @@
-GameObject = Object:extend()
+local GameObject = Object:extend()
 
 function GameObject:new(x, y)
 	--- remember to use GameObject.super.new(self, x, y)
@@ -40,6 +40,8 @@ function GameObject:new(x, y)
 	self.visibility_changed = nil
 	self.update_changed = nil
 	self.fixed_update_changed = nil
+
+	self.is_bump_object = nil
 	
 end
 
@@ -102,6 +104,78 @@ function GameObject:move(dx, dy)
 	self:move_to(self.pos.x + dx, self.pos.y + dy)
 end
 
+function GameObject.default_bump_filter(item, other)
+	return "slide"
+end
+
+function GameObject:bump_init(info_table, filter)
+	-- initializes bump.lua physics with AABB collisions and spatial hashing. useful even for non-physics objects for collision detection for e.g. coins
+	info_table = info_table or {
+		rect = Rect.centered(0, 0, 16, 16)
+	}
+	filter = filter or GameObject.default_bump_filter
+	self.is_bump_object = true
+	self.collision_rect = (info_table.rect + self.pos) or Rect.centered(self.pos.x, self.pos.y, 0, 0)
+	self.move_to = GameObject.move_to_bump
+	self.bump_filter = filter
+	self.bump_world = nil
+end
+
+function GameObject:set_bump_collision_rect(rect)
+	self.collision_rect = rect
+	self.world:update(self, self.pos.x - self.collision_rect.width / 2, self.pos.y - self.collision_rect.height / 2, self.collision_rect.width, self.collision_rect.height)
+end
+
+function GameObject:set_bump_world(world)
+	self.bump_world = world
+	world:add(self, self.pos.x - self.collision_rect.width / 2, self.pos.y - self.collision_rect.height / 2, self.collision_rect.width, self.collision_rect.height)
+end
+
+<<<<<<< HEAD
+function GameObject.move_to_bump(object, x, y, filter, noclip)
+	filter = filter or object.filter
+	if noclip then 
+		object.pos.x = x
+		object.pos.y = y
+		object.moved:emit()
+		return
+	end
+	local actual_x, actual_y, collisions, num_collisions = object.bump_world:move(object, x - object.collision_rect.width / 2, y - object.collision_rect.height / 2, filter)
+	object.pos.x = actual_x + object.collision_rect.width / 2
+	object.pos.y = actual_y + object.collision_rect.height / 2
+
+	for i = 1, num_collisions do
+		local col = collisions[i]
+		object:process_collision(col.other, col.dx, col.dy)
+	end
+
+	object.moved:emit()
+=======
+function GameObject:move_to_bump(x, y, filter, noclip)
+	filter = filter or self.filter
+	if noclip then 
+		self.pos.x = x
+		self.pos.y = y
+		self.moved:emit()
+		return
+	end
+	local actual_x, actual_y, collisions, num_collisions = self.bump_world:move(self, x - self.collision_rect.width / 2, y - self.collision_rect.height / 2, filter)
+	self.pos.x = actual_x + self.collision_rect.width / 2
+	self.pos.y = actual_y + self.collision_rect.height / 2
+
+	for i = 1, num_collisions do
+		local col = collisions[i]
+		self:process_collision(col.other, col.dx, col.dy)
+	end
+
+	self.moved:emit()
+>>>>>>> 53e2d75 (aabb collisions)
+end
+
+function GameObject:process_collision(other, dx, dy)
+end
+
+---@diagnostic disable-next-line: duplicate-set-field
 function GameObject:move_to(x, y)
 
 	self.pos.x = x
@@ -114,7 +188,7 @@ function GameObject:movev_to(v)
 	self:move_to(v.x, v.y)
 end
 
-function GameObject:tp(x, y)
+function GameObject:tp_to(x, y)
 	self:move_to(x, y)
 	self:reset_interpolation()
 end
@@ -223,3 +297,5 @@ function GameObject:to_world(pos)
 end
 
 function GameObject:exit() end
+
+return GameObject

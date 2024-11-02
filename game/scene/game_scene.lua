@@ -1,8 +1,9 @@
-local GameScene = GameObject:extend()
-
 local Camera = require("obj.camera")
+local bump = require("lib.bump")
 
 local elapsed = 0.0
+
+local GameScene = GameObject:extend()
 
 -- Helper functions
 local function add_to_array(array, indices, obj)
@@ -39,6 +40,7 @@ function GameScene:new()
 
     self.draw_objects = {}
     self.draw_indices = {}
+	self.bump_world = nil
 
     -- function to sort draw objects
     self.draw_sort = nil
@@ -73,6 +75,12 @@ function GameScene:new()
 
 end
 
+function GameScene:create_bump_world(cell_size)
+	cell_size = cell_size or 64
+	self.bump_world = bump.newWorld(cell_size)
+
+end
+
 function GameScene:update_shared(dt)
     GameScene.super.update_shared(self, dt)
 
@@ -99,15 +107,20 @@ function GameScene:draw()
     if self.draw_sort then
         table.sort(self.draw_objects, self.draw_sort)
     end
-
-    for _, obj in ipairs(self.draw_objects) do
-        obj:draw_shared()
+	
+    for i, obj in ipairs(self.draw_objects) do
+        self.draw_indices[obj] = i
     end
+
+	for _, obj in ipairs(self.draw_objects) do
+		obj:draw_shared()
+	end
 end
 
 function GameScene:draw_shared()
     graphics.push()
     local zoom = self.camera.zoom
+	self.camera.viewport_size = self.viewport_size
     self.camera:update_interpolated_position()
     local offset = self:get_object_draw_position(self.camera)
 
@@ -115,8 +128,15 @@ function GameScene:draw_shared()
         self.camera.following:update_interpolated_position()
         offset = self:get_object_draw_position(self.camera.following)
     end
+
+
+	offset = self.camera:clamp_to_limits(offset)
+
+
     offset.y = -offset.y + (self.viewport_size.y / 2) / zoom
     offset.x = -offset.x + (self.viewport_size.x / 2) / zoom
+
+	
     graphics.scale(zoom, zoom)
     graphics.translate(offset.x, offset.y)
     self:draw()
@@ -195,6 +215,10 @@ function GameScene:add_object(obj)
     end
 
     obj.destroyed:connect(function() self:remove_object(obj) end)
+
+	if obj.is_bump_object then 
+		obj:set_bump_world(self.bump_world)
+	end
 
     obj:enter_shared()
     return obj

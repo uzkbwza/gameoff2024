@@ -7,7 +7,7 @@ game.fixed_sequencer = Sequencer()
 
 game.scenes = {
 	Base = "game_scene",
-	Game = "test_game_scene",
+	Game = "room_scene",
 	Pause = "pause_scene",
 }
 

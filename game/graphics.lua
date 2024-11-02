@@ -158,7 +158,7 @@ end
 
 function graphics.main_viewport_draw()
 	graphics.set_canvas(graphics.canvas)
-	graphics.clear(graphics.palette.black)
+	graphics.clear(0, 0, 0)
 
 	graphics.game_draw()
 

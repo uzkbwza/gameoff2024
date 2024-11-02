@@ -4,6 +4,8 @@ conf = require "conf"
 graphics = require "graphics"
 rng = require "lib.rng"
 gametime = require "time"
+audio = require "audio"
+
 palette = nil
 textures = nil
 
