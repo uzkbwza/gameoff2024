@@ -1,12 +1,12 @@
 local TestDungeonObject = GameObject:extend()
 
-local bump_data = {
+local bump_info = {
 	rect = Rect.centered(0, 0, 16, 16)
 }
 
 function TestDungeonObject:new(x, y)
 	TestDungeonObject.super.new(self, x, y)
-	self:bump_init(bump_data)
+	self:bump_init(bump_info)
 end
 
 function TestDungeonObject:fixed_update(dt)
@@ -20,7 +20,8 @@ end
 
 function TestDungeonObject:draw()
 	graphics.set_color(1, 1, 1)
-	graphics.rectangle("fill",  -8, -8, 16, 16)
+	local r = self.collision_rect
+	graphics.rectangle("fill", -r.width/2, -r.height/2, r.width, r.height)
 end
 
 return TestDungeonObject

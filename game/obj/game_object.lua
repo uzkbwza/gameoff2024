@@ -109,13 +109,17 @@ function GameObject.default_bump_filter(item, other)
 end
 
 function GameObject:bump_init(info_table, filter)
+
 	-- initializes bump.lua physics with AABB collisions and spatial hashing. useful even for non-physics objects for collision detection for e.g. coins
 	info_table = info_table or {
 		rect = Rect.centered(0, 0, 16, 16)
 	}
+
+	assert(info_table.rect.x == -info_table.rect.width / 2 and info_table.rect.y == -info_table.rect.height / 2, "collision rect must be centered")
+
 	filter = filter or GameObject.default_bump_filter
 	self.is_bump_object = true
-	self.collision_rect = (info_table.rect + self.pos) or Rect.centered(self.pos.x, self.pos.y, 0, 0)
+	self.collision_rect = (info_table.rect) or Rect(0, 0, 0, 0)
 	self.move_to = GameObject.move_to_bump
 	self.bump_filter = filter
 	self.bump_filter_checks = {}
