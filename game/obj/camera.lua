@@ -14,9 +14,15 @@ end
 
 function Camera:follow(obj)
 	self.following = obj
+	obj.destroyed:connect(function()
+		self.following = nil
+	end)
+	obj.removed:connect(function()
+		self.following = nil
+	end)
 end
 
-function Camera:set_limits(xstart, xend, ystart, yend)
+function Camera:set_limits(xstart, ystart, xend, yend)
 	self.limits = {
 		xstart = xstart,
 		xend = xend,
@@ -27,7 +33,7 @@ end
 
 function Camera:clamp_to_limits(offset)
 	if not self.limits then
-		return
+		return offset
 	end
 	local x, y = offset.x, offset.y
 	local xstart, xend, ystart, yend = self.limits.xstart, self.limits.xend, self.limits.ystart, self.limits.yend

@@ -4,6 +4,8 @@ function GameObject:new(x, y)
 	--- remember to use GameObject.super.new(self, x, y)
 	
 	self.destroyed = Signal()
+	self.removed = Signal()
+	self.added = Signal()
 	self.moved = Signal()
 
 	if x then
@@ -39,9 +41,10 @@ function GameObject:new(x, y)
 	-- signals
 	self.visibility_changed = nil
 	self.update_changed = nil
-	self.fixed_update_changed = nil
+	self.static = false
 
 	self.is_bump_object = nil
+
 	
 end
 
@@ -87,13 +90,18 @@ function GameObject:update_shared(dt, ...)
 	end
 end
 
+function GameObject:add_update_signals()
+	self.update_changed = Signal()
+	self.visibility_changed = Signal()
+end
+
 function GameObject:spawn_object(obj)
 	obj.pos = self.pos:clone()
 	self.scene:add_object(obj)
 end
 
 function GameObject:get_input_table()
-	return self.scene.input
+	return self.scene:get_input_table()
 end
 
 function GameObject:movev(dv)
@@ -108,6 +116,22 @@ function GameObject.default_bump_filter(item, other)
 	return "slide"
 end
 
+function GameObject:hide()
+	if not self.visible then
+		return
+	end
+	self.visible = false
+	self.visibility_changed:emit()
+end
+
+function GameObject:show()
+	if self.visible then
+		return
+	end
+	self.visible = true
+	self.visibility_changed:emit()
+end
+
 function GameObject:bump_init(info_table, filter)
 
 	-- initializes bump.lua physics with AABB collisions and spatial hashing. useful even for non-physics objects for collision detection for e.g. coins
@@ -115,6 +139,7 @@ function GameObject:bump_init(info_table, filter)
 		rect = Rect.centered(0, 0, 16, 16)
 	}
 
+	-- TODO: position centered on feet?
 	assert(info_table.rect.x == -info_table.rect.width / 2 and info_table.rect.y == -info_table.rect.height / 2, "collision rect must be centered")
 
 	filter = filter or GameObject.default_bump_filter
@@ -133,7 +158,9 @@ end
 
 function GameObject:set_bump_world(world)
 	self.bump_world = world
-	world:add(self, self.pos.x - self.collision_rect.width / 2, self.pos.y - self.collision_rect.height / 2, self.collision_rect.width, self.collision_rect.height)
+	if world then
+		world:add(self, self.pos.x - self.collision_rect.width / 2, self.pos.y - self.collision_rect.height / 2, self.collision_rect.width, self.collision_rect.height)
+	end
 end
 
 function GameObject:move_to_bump(x, y, filter, noclip)
@@ -177,6 +204,10 @@ function GameObject:tp_to(x, y)
 	self:reset_interpolation()
 end
 
+function GameObject:tpv_to(v)
+	self:tp_to(v.x, v.y)
+end
+
 function GameObject:reset_interpolation()
 	-- resets the physics interpolation
 	self.i_prev_pos.x = self.pos.x
@@ -189,6 +220,11 @@ function GameObject:reset_interpolation()
 		self._prev_scale2_viz.y = self.scale2.y
 	end
 
+end
+
+function GameObject:set_update(on)
+	self.static = not on
+	self.update_changed:emit()
 end
 
 function GameObject:fixed_update(dt, ...)

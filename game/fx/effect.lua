@@ -22,7 +22,8 @@ function Effect:update_shared(dt)
 end
 
 function Effect:draw_shared()
-	Effect.super.draw_shared(self, self.elapsed, self.ticks, self.elapsed / self.duration)
-end
+														         -- t = 0.0 to 1.0
+	Effect.super.draw_shared(self, self.elapsed, self.ticks, self.elapsed / self.duration )
+end	
 
 return Effect

@@ -56,6 +56,8 @@ function GameScene:new()
     self.blocks_render = true
     self.blocks_input = true
 
+	self.follow_camera = true
+
     self:add_sequencer()
     self:add_fixed_sequencer()
     self:add_elapsed_time()
@@ -87,6 +89,7 @@ function GameScene:update_shared(dt)
     for _, obj in ipairs(self.update_objects) do
         obj:update_shared(dt)
     end
+
 end
 
 function GameScene:update(dt)
@@ -98,6 +101,7 @@ function GameScene:fixed_update_shared(dt)
     for _, obj in ipairs(self.fixed_update_objects) do
         obj:fixed_update_shared(dt)
     end
+
 end
 
 function GameScene:fixed_update(dt)
@@ -115,26 +119,29 @@ function GameScene:draw()
 	for _, obj in ipairs(self.draw_objects) do
 		obj:draw_shared()
 	end
+
 end
 
 function GameScene:draw_shared()
     graphics.push()
-    local zoom = self.camera.zoom
-	self.camera.viewport_size = self.viewport_size
-    self.camera:update_interpolated_position()
-    local offset = self:get_object_draw_position(self.camera)
+	local offset = Vec2(0, 0)
+	local zoom = 1.0
+	if self.follow_camera then 
+		zoom = self.camera.zoom
+		self.camera.viewport_size = self.viewport_size
+		self.camera:update_interpolated_position()
+		offset = self:get_object_draw_position(self.camera)
 
-    if self.camera.following then
-        self.camera.following:update_interpolated_position()
-        offset = self:get_object_draw_position(self.camera.following)
-    end
+		if self.camera.following then
+			self.camera.following:update_interpolated_position()
+			offset = self:get_object_draw_position(self.camera.following)
+		end
 
-
-	offset = self.camera:clamp_to_limits(offset)
-
-
-    offset.y = -offset.y + (self.viewport_size.y / 2) / zoom
-    offset.x = -offset.x + (self.viewport_size.x / 2) / zoom
+		offset = self.camera:clamp_to_limits(offset)
+	
+		offset.y = -offset.y + (self.viewport_size.y / 2) / zoom
+		offset.x = -offset.x + (self.viewport_size.x / 2) / zoom
+	end
 
 	
     graphics.scale(zoom, zoom)
@@ -171,22 +178,31 @@ function GameScene:pop()
     self.scene_popped:emit()
 end
 
+function GameScene:get_input_table()
+	local s = self.scene
+	while s ~= s.scene do
+		s = s.scene
+	end
+	return s.input
+end
+
 function GameScene:add_object(obj)
+	if self.objects_indices[obj] then 
+		error("Object already in scene") 
+	end
+
+	if obj == nil then
+		error("Object is nil")
+	end
+
     obj.scene = self
     add_to_array(self.objects, self.objects_indices, obj)
 
-    if not obj.static then
-        add_to_array(self.fixed_update_objects, self.fixed_update_indices, obj)
-        add_to_array(self.update_objects, self.update_indices, obj)
-    end
-
-    if obj.draw then
-        add_to_array(self.draw_objects, self.draw_indices, obj)
-    end
+	self:add_to_update_tables(obj)
 
     if obj.visibility_changed then
-        obj.visibility_changed:connect(function(visible)
-            if visible then
+        obj.visibility_changed:connect(function()
+            if obj.visible then
                 add_to_array(self.draw_objects, self.draw_indices, obj)
             else
                 remove_from_array(self.draw_objects, self.draw_indices, obj)
@@ -195,21 +211,13 @@ function GameScene:add_object(obj)
     end
 
     if obj.update_changed then
-        obj.update_changed:connect(function(update)
-            if update then
+        obj.update_changed:connect(function()
+            if not obj.static then
                 add_to_array(self.update_objects, self.update_indices, obj)
+				add_to_array(self.fixed_update_objects, self.fixed_update_indices, obj)
             else
                 remove_from_array(self.update_objects, self.update_indices, obj)
-            end
-        end)
-    end
-
-    if obj.fixed_update_changed then
-        obj.fixed_update_changed:connect(function(fixed_update)
-            if fixed_update then
-                add_to_array(self.fixed_update_objects, self.fixed_update_indices, obj)
-            else
-                remove_from_array(self.fixed_update_objects, self.fixed_update_indices, obj)
+				remove_from_array(self.fixed_update_objects, self.fixed_update_indices, obj)
             end
         end)
     end
@@ -221,15 +229,43 @@ function GameScene:add_object(obj)
 	end
 
     obj:enter_shared()
+	obj.added:emit()
+
     return obj
 end
 
+function GameScene:add_to_update_tables(obj)
+	
+    if not obj.static then
+        add_to_array(self.fixed_update_objects, self.fixed_update_indices, obj)
+        add_to_array(self.update_objects, self.update_indices, obj)
+    end
+
+    if obj.draw and obj.visible then
+        add_to_array(self.draw_objects, self.draw_indices, obj)
+    end
+
+end
+
 function GameScene:remove_object(obj)
+	if not self.objects_indices[obj] then 
+		error("Object not in scene") 
+	end
+
+	if obj == nil then
+		error("Object is nil")
+	end
+	
     obj.scene = nil
     remove_from_array(self.objects, self.objects_indices, obj)
     remove_from_array(self.fixed_update_objects, self.fixed_update_indices, obj)
     remove_from_array(self.update_objects, self.update_indices, obj)
     remove_from_array(self.draw_objects, self.draw_indices, obj)
+	if obj.is_bump_object then
+		self.bump_world:remove(obj)
+		obj:set_bump_world(nil)
+	end
+	obj.removed:emit()
 end
 
 return GameScene

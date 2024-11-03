@@ -4,8 +4,6 @@ conf = require "conf"
 graphics = require "graphics"
 rng = require "lib.rng"
 gametime = require "time"
-audio = require "audio"
-
 palette = nil
 textures = nil
 
@@ -66,6 +64,10 @@ function love.load()
 end
 
 function love.update(dt)
+
+	dbg("fps", love.timer.getFPS())
+	dbg("memory use (kB)", floor(collectgarbage("count")))
+
 	accumulated_time = accumulated_time + dt
 	local delta_frame = min(dt * 60, conf.max_delta * 60)
 
@@ -92,8 +94,6 @@ function love.update(dt)
 	
 	-- print(graphics.interp_fraction)
 
-	dbg("fps", love.timer.getFPS())
-	dbg("memory use (kB)", floor(collectgarbage("count")))
 	debug.update(dt)
 end
 

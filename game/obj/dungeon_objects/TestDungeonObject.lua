@@ -12,7 +12,7 @@ end
 function TestDungeonObject:fixed_update(dt)
 	if self.player then 
 		local input = self:get_input_table()
-		local move = input.move_normalized
+		local move = input.move_clamped
 
 		self:move(move.x * dt * 2.0, move.y * dt * 2.0)
 	end

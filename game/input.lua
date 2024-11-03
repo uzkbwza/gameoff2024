@@ -51,6 +51,7 @@ function input.load()
 	for vector, _ in pairs(input.vectors) do
 		g[vector] = {
 			normalized = vector .. "_normalized",
+			clamped = vector .. "_clamped"
 		}
 		input[vector] = Vec2(0, 0)
 		input.dummy[vector] = Vec2(0, 0)
@@ -58,6 +59,10 @@ function input.load()
 		input[vector .. "_normalized"] = Vec2(0, 0)
 		input.dummy[vector .. "_normalized"] = Vec2(0, 0)
 		input.fixed[vector .. "_normalized"] = Vec2(0, 0)
+		input[vector .. "_clamped"] = Vec2(0, 0)
+		input.dummy[vector .. "_clamped"] = Vec2(0, 0)
+		input.fixed[vector .. "_clamped"] = Vec2(0, 0)
+
 	end
 	
 end
@@ -221,6 +226,14 @@ function input.process(table)
 		local nx, ny = vec2_normalized(v.x, v.y)
 		nv.x = nx
 		nv.y = ny
+
+		local cv = table[g[k].clamped]
+		local cx, cy = v.x, v.y
+		if vec2_magnitude(v.x, v.y) > 1 then
+			cx, cy = vec2_normalized(v.x, v.y)
+		end
+		cv.x = cx
+		cv.y = cy
 		-- print(v)
 	end
 
