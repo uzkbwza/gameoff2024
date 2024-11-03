@@ -3,7 +3,6 @@ local game = {}
 game.scene_stack = {}
 game.queued_scene = nil
 game.sequencer = Sequencer()
-game.fixed_sequencer = Sequencer()
 
 game.scenes = {
 	Base = "game_scene",
@@ -82,21 +81,6 @@ function game.update(dt)
 	graphics.update(dt)
 end
 
-function game.fixed_update(dt)
-	-- input
-	game.update_input_stack(input.fixed)
-
-	-- update
-	for _, v in ipairs(game.scene_stack) do
-		v:fixed_update_shared(dt)
-		if v.blocks_logic then
-			break
-		end
-	end
-
-	game.fixed_sequencer:update(dt)
-
-end
 
 function game.draw()
 	graphics.scene_stack = game.scene_stack

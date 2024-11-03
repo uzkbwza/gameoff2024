@@ -138,7 +138,7 @@ function graphics.game_draw()
 			scene.interp_fraction = update_interp and graphics.interp_fraction or scene.interp_fraction
 		end
 	
-		table.push_front(ordered_draw, scene)
+		table.insert(ordered_draw, scene)
 
 		if scene.blocks_logic then
 			update_interp = false
@@ -149,8 +149,8 @@ function graphics.game_draw()
 		end
 	end
 
-	for _, scene in ipairs(ordered_draw) do
-		scene:draw_shared()
+	for i=#ordered_draw, 1, -1 do
+		ordered_draw[i]:draw_shared()
 	end
 
 	graphics.pop()

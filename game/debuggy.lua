@@ -1,7 +1,7 @@
 local debuggy = setmetatable({}, {__index = debug})
 
 debug.enabled = true
-debug.draw = false
+debug.draw = true
 debug.lines = {}
 
 function debuggy.can_draw()
@@ -23,6 +23,7 @@ function debuggy.printlines(line, x, y)
 
 		counter = counter + 1
 	end
+
 end
 
 function debuggy.clear(key)

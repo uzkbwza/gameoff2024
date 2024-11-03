@@ -3,10 +3,8 @@ local Camera = GameObject:extend()
 function Camera:new(x, y)
 	Camera.super.new(self, x, y)
 	self:add_sequencer()
-	self:add_fixed_sequencer()
 	self:add_elapsed_time()
 	self:add_elapsed_ticks()
-	self:add_elapsed_frames()
 	self.following = nil
 	self.viewport_size = Vec2()
 	self.zoom = 1
@@ -30,6 +28,11 @@ function Camera:set_limits(xstart, ystart, xend, yend)
 		yend = yend
 	}
 end
+
+function Camera:update(dt)
+
+end
+
 
 function Camera:clamp_to_limits(offset)
 	if not self.limits then

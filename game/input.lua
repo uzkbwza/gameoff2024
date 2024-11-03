@@ -4,7 +4,7 @@ input.mapping = nil
 input.vectors = nil
 
 input.dummy = {}
-input.fixed = {}
+
 input.joysticks = {}
 
 input.generated_action_names = {}
@@ -19,15 +19,10 @@ function input.load()
 
 	input.joystick_held = {}
 
-	input.fixed.keyboard_held = {}
-
-	input.fixed.joystick_held = {}
 
 	input.dummy.mapping = conf.input_actions
 	input.dummy.vectors = conf.input_vectors
 	
-	input.fixed.mapping = conf.input_actions
-	input.fixed.vectors = conf.input_vectors
 
 	for action, _ in pairs(input.mapping) do
 		g[action] = {
@@ -44,14 +39,10 @@ function input.load()
 		input.dummy[action .. "_pressed"] = false
 		input.dummy[action .. "_released"] = false
 
-		input.fixed[action] = false
-		input.fixed[action .. "_pressed"] = false
-		input.fixed[action .. "_released"] = false
 
 		if input.mapping[action].joystick_axis then 
 			input[action .. "_amount"] = 0
 			input.dummy[action .. "_amount"] = 0
-			input.fixed[action .. "_amount"] = 0
 		end
 
 	end
@@ -63,13 +54,10 @@ function input.load()
 		}
 		input[vector] = Vec2(0, 0)
 		input.dummy[vector] = Vec2(0, 0)
-		input.fixed[vector] = Vec2(0, 0)
 		input[vector .. "_normalized"] = Vec2(0, 0)
 		input.dummy[vector .. "_normalized"] = Vec2(0, 0)
-		input.fixed[vector .. "_normalized"] = Vec2(0, 0)
 		input[vector .. "_clamped"] = Vec2(0, 0)
 		input.dummy[vector .. "_clamped"] = Vec2(0, 0)
-		input.fixed[vector .. "_clamped"] = Vec2(0, 0)
 
 	end
 	
@@ -256,18 +244,12 @@ function input.update(dt)
 	input.process(input)
 end
 
-function input.fixed_update(dt)
-	input.process(input.fixed)
-end
 
 function input.keypressed(key)
 	if input.keyboard_held[key] == nil then
-		input.keyboard_held[key] = conf.interpolate_timestep and gametime.frames
+		input.keyboard_held[key] = gametime.frames
 	end
 
-	if input.fixed.keyboard_held[key] == nil then
-		input.fixed.keyboard_held[key] = gametime.ticks
-	end
 end
 
 function input.keyreleased(key)
@@ -275,11 +257,6 @@ function input.keyreleased(key)
 		input.keyboard_held[key] = -1
 	else
 		input.keyboard_held[key] = nil
-	end
-	if input.fixed.keyboard_held[key] == gametime.ticks then
-		input.fixed.keyboard_held[key] = -1
-	else
-		input.fixed.keyboard_held[key] = nil
 	end
 end
 
@@ -295,11 +272,7 @@ function input.joystick_released(joystick, button)
 	else
 		input.joystick_held[button] = nil
 	end
-	if input.fixed.joystick_held[button] == gametime.ticks then
-		input.fixed.joystick_held[button] = -1
-	else
-		input.fixed.joystick_held[button] = nil
-	end
+
 end
 
 return input

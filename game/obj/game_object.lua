@@ -22,18 +22,7 @@ function GameObject:new(x, y)
 	self.rot = 0
 	self.scale = Vec2(1, 1)
 
-
-	-- interpolation stuff
-	self.i_prev_pos = Vec2(self.pos.x, self.pos.y)
-	self.i_pos = Vec2(self.pos.x, self.pos.y)
-	self.i_prev_rot = self.rot
-	self.i_prev_scale = Vec2(self.scale.x, self.scale.y)
-	self.i_rot = self.rot
-	self.i_scale = Vec2(self.scale.x, self.scale.y)
-
 	self._update_functions = {}
-
-	self._fixed_update_functions = {}
 
 	self.scene = nil
 	
@@ -43,47 +32,22 @@ function GameObject:new(x, y)
 	self.visibility_changed = nil
 	self.update_changed = nil
 	self.static = false
-	self.should_update_interpolation = false
 
 	self.is_bump_object = nil
 
 end
 
 function GameObject:on_moved()
-	self.should_update_interpolation = true
 	self.moved:emit()
 end
 
 function GameObject.dummy() end
 
--- function GameObject:setup_base_functions()
--- 	if conf.interpolate_timestep then
--- 		self.draw_shared = self.draw_shared_interpolated
--- 	else
--- 		self.update_interpolated_position = GameObject.dummy
--- 		self.reset_interpolation = GameObject.dummy
--- 		self.draw_shared = self.draw_shared_uninterpolated
--- 	end
--- end
-
-
-function GameObject:add_scale2()
-	self.scale2 = Vec2(1, 1)
-	self._prev_scale2_viz = Vec2(self.scale2.x, self.scale2.y)
-	self.i_scale2 = Vec2(self.scale2.x, self.scale2.y)
-	self.has_scale2 = true
-end
 
 function GameObject:add_sequencer()
 	assert(self.sequencer == nil, "GameObject:add_sequencer() called but sequencer already exists")
 	self.sequencer = Sequencer()
 	table.insert(self._update_functions, function(dt) self.sequencer:update(dt) end)
-end
-
-function GameObject:add_fixed_sequencer()
-	assert(self.fixed_sequencer == nil, "GameObject:add_fixed_sequencer() called but fixed_sequencer already exists")
-	self.fixed_sequencer = Sequencer()
-	table.insert(self._fixed_update_functions, function(dt) self.fixed_sequencer:update(dt) end)
 end
 
 function GameObject:add_elapsed_time()
@@ -92,13 +56,9 @@ function GameObject:add_elapsed_time()
 end
 
 function GameObject:add_elapsed_ticks()
+	assert(self.elapsed ~= nil, "GameObject:add_elapsed_ticks() called but no elapsed time implemented")
 	self.tick = 1
-	table.insert(self._fixed_update_functions, function(dt) self.tick = self.tick + 1 end)
-end
-
-function GameObject:add_elapsed_frames()
-	self.frame = 1
-	table.insert(self._update_functions, function(dt) self.frame = self.frame + 1 end)
+	table.insert(self._update_functions, function(dt) self.tick = floor(self.elapsed) end)
 end
 
 function GameObject:update_shared(dt, ...)
@@ -121,10 +81,6 @@ end
 
 function GameObject:get_input_table()
 	return self.base_scene:get_input_table()
-end
-
-function GameObject:get_interp_fraction()
-	return self.base_scene.interp_fraction
 end
 
 function GameObject:movev(dv)
@@ -235,98 +191,32 @@ function GameObject:movev_to(v)
 end
 
 function GameObject:tp_to(x, y)
+	-- old method from when interpolation was used
 	self:move_to(x, y, nil, true)
-	self:reset_interpolation()
 end
 
 function GameObject:tpv_to(v)
 	self:tp_to(v.x, v.y)
 end
 
-function GameObject:reset_interpolation()
-	-- resets the physics interpolation
-	-- print(self.i_prev_pos)
-
-	self.i_prev_pos.x = self.pos.x
-	self.i_prev_pos.y = self.pos.y
-	self.i_prev_rot = self.rot
-	self.i_prev_scale.x = self.scale.x
-	self.i_prev_scale.y = self.scale.y
-	self.should_update_interpolation = false
-end
 
 function GameObject:set_update(on)
 	self.static = not on
 	self.update_changed:emit()
 end
 
-function GameObject:fixed_update(dt, ...)
-end
-
 function GameObject:update(dt, ...)
 end
 
-function GameObject:fixed_update_shared(dt, ...)
-	self:reset_interpolation()
-
-	self:fixed_update(dt, ...)
-
-	for _, func in ipairs(self._fixed_update_functions) do
-		func(dt, ...)
-	end
-end
-
--- if you implement this it will be run
--- function GameObject:draw()
--- 	graphics.rectangle("fill", -50, -50, 100, 100)
--- end
-
--- function GameObject:draw_shared_interpolated(...)
--- 	self:update_interpolated_position()
--- 	self:_draw_shared(self.i_pos, self.i_rot, self.i_scale, ...)
--- end
-
--- function GameObject:draw_shared_uninterpolated(...)
--- 	self:_draw_shared(self.pos, self.rot, self.scale, ...)
--- end
-
-
-function GameObject:update_interpolated_position()
-	-- if true then return end
-	local lerp = lerp
-	local lerp_angle = lerp_angle
-	local t = self:get_interp_fraction()
-	-- print(self.pos)
-
-	self.i_pos.x = lerp(self.i_prev_pos.x, self.pos.x, t)
-	self.i_pos.y = lerp(self.i_prev_pos.y, self.pos.y, t)
-	self.i_rot = lerp_angle(self.i_prev_rot, self.rot, t)
-	self.i_scale.x = lerp(self.i_prev_scale.x, self.scale.x, t)
-	self.i_scale.y = lerp(self.i_prev_scale.y, self.scale.y, t)
-end
-
 function GameObject:draw_shared(...)
--- end
 
--- function GameObject:_draw_shared(pos, rot, scale, ...)
-
-	-- using my wrapper eats some performance so im not using it here
-	-- local pos = self.i_pos
-	-- local rot = self.i_rot
-	-- local scale = self.i_scale
-	-- local pos = self.pos
-	-- local scale = self.scale
-	-- local rot = self.rot
-	-- if self.should_update_interpolation then
-	self:update_interpolated_position()
-	local pos = self.i_pos
-	local scale = self.i_scale
-	local rot = self.i_rot
+	local pos = self.pos
+	local scale = self.scale
 	-- end
 	love.graphics.setColor(1, 1, 1, 1)
 	love.graphics.push()
 	love.graphics.translate(pos.x, pos.y)
-	love.graphics.rotate(rot)
+	love.graphics.rotate(self.rot)
 	love.graphics.scale(scale.x, scale.y)
 
 	self:draw(...)
@@ -339,9 +229,7 @@ function GameObject:destroy()
 	if self.sequencer then
 		self.sequencer:destroy()
 	end
-	if self.fixed_sequencer then
-		self.fixed_sequencer:destroy()
-	end
+
 	self.destroyed:emit()
 end
 

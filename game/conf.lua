@@ -43,19 +43,10 @@ local conf = {
 	display_scale = 4,
 
 	-- delta
+	use_fixed_delta = true,
 	fixed_tickrate = 60,
-	max_delta = 360,
+	max_delta = 600000000000000,
 	max_fixed_ticks_per_frame = 5,
-	interpolate_timestep = false,
-
-	-- assets
-	asset_folder_scan = {
-		"assets",
-		"obj",
-		"screen",
-		"ui",
-		"fx",
-	},
 
 	-- input
 	input_actions = {

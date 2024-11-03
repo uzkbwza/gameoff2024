@@ -13,12 +13,15 @@ function TestDungeonObject:new(x, y)
 	-- self:hide()
 end
 
-function TestDungeonObject:fixed_update(dt)
+function TestDungeonObject:update(dt)
 	if self.player then 
 		local input = self:get_input_table()
 		local move = input.move_clamped
 
-		self:move(move.x * dt * 2.0, move.y * dt * 2.0)
+		if move.x ~= 0 or move.y ~= 0 then 
+			self:move(move.x * dt * 2.0, move.y * dt * 2.0)
+		end
+		-- self:move(move.x * dt * 2.0, move.y * dt * 2.0)
 	end
 end
 

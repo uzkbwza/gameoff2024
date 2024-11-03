@@ -54,7 +54,7 @@ function Ball:new(x, y)
 	self.tick = rng(0, 1)
 end
 
-function Ball:fixed_update(dt)
+function Ball:update(dt)
 	self:movev(self.velocity * dt)
 	if self.pos.x < BOUNDS.xstart then
 		self:move_to(BOUNDS.xstart, self.pos.y)
@@ -79,7 +79,6 @@ function Ball:fixed_update(dt)
 		
 		if overlap > 0 then 
 			self:movev(overlap * self.velocity:normalize_in_place() * -1  * dt)
-			self:reset_interpolation()
 			self.velocity.y = self.velocity.y * -1
 			local x_overlap = (self.pos.x - self.paddle.pos.x) / (PADDLE_WIDTH / 2)
 			-- print(x_overlap)
@@ -105,7 +104,7 @@ function Paddle:new(x, y)
 	Paddle.super.new(self, x, y)
 end
 
-function Paddle:fixed_update(dt)
+function Paddle:update(dt)
 	local input = self:get_input_table()
 
 	if input.move_left then
@@ -123,7 +122,7 @@ function Paddle:fixed_update(dt)
 end
 
 function Paddle:draw()
-
+	
 	graphics.set_color(1, 1, 1, 1)
 	graphics.draw_centered(textures.paddle)
 end
@@ -131,7 +130,7 @@ end
 function TestGameScene:new()
 	TestGameScene.super.new(self)
 	-- self.draw_sort = function(a, b)
-	-- 	return a.i_pos.y < b.i_pos.y
+	-- 	return a.pos.y < b.pos.y
 	-- end
 end
 

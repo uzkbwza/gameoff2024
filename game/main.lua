@@ -10,6 +10,19 @@ textures = nil
 local accumulated_time = 0
 local frame_time = 1 / conf.fixed_tickrate
 
+local function step(dt)
+	if love.update then love.update(dt) end -- will pass 0 if love.timer is disabled
+
+	if love.graphics and love.graphics.isActive() then
+		love.graphics.origin()
+		love.graphics.clear(love.graphics.getBackgroundColor())
+
+		if love.draw then love.draw() end
+
+		love.graphics.present()
+	end
+end
+
 function love.run()
 	if love.math then
 		love.math.setRandomSeed(os.time())
@@ -41,19 +54,31 @@ function love.run()
 		if love.timer then dt = love.timer.step() end
 
 		-- Call update and draw
-		if love.update then love.update(dt) end -- will pass 0 if love.timer is disabled
+		accumulated_time = accumulated_time + dt
 
-		if love.graphics and love.graphics.isActive() then
-			love.graphics.origin()
-			love.graphics.clear(love.graphics.getBackgroundColor())
-
-			if love.draw then love.draw() end
-
-			love.graphics.present()
+		local delta_frame = min(dt * 60, conf.max_delta * 60)
+	
+		if not conf.use_fixed_delta then
+			step(delta_frame)
+		else
+			for i = 1, conf.max_fixed_ticks_per_frame do
+				if accumulated_time < frame_time then
+					break
+				end
+				
+				step(frame_time * 60)
+	
+				accumulated_time = accumulated_time - frame_time
+			end
 		end
-
+	
+		gametime.time = gametime.time + delta_frame
+		gametime.ticks = floor(gametime.time)
+		gametime.frames = gametime.frames + 1
 		if love.timer then love.timer.sleep(0.001) end
+
 	end
+	
 end
 
 function love.load()
@@ -63,59 +88,22 @@ function love.load()
 	textures = graphics.textures
 end
 
-
-local function dynamic_update(dt)
-	game.update(dt)
-	gametime.time = gametime.time + dt
-	gametime.frames = gametime.frames + 1
-	debug.update(frame_time * 60)
-end
-
 function love.update(dt)
-
 	dbg("fps", love.timer.getFPS())
 	dbg("memory use (kB)", floor(collectgarbage("count")))
 
-	accumulated_time = accumulated_time + dt
-
-	local delta_frame = min(dt * 60, conf.max_delta * 60)
-
-	if conf.interpolate_timestep then
-		input.update(delta_frame)
-		dynamic_update(delta_frame)
-	end
-
-	for i = 1, conf.max_fixed_ticks_per_frame do
-		if accumulated_time < frame_time then
-			break
-		end
-		
-		if not conf.interpolate_timestep then
-			input.update(frame_time * 60)
-			dynamic_update(frame_time)
-			input.fixed = input
-		else
-			input.fixed_update(frame_time * 60)
-		end
-		
-		game.fixed_update(frame_time * 60)
-
-		accumulated_time = accumulated_time - frame_time
-		gametime.ticks = gametime.ticks + 1
-	end
-	-- print(fixed_updated)
+	input.update(dt)
+	game.update(dt)
 	
+	debug.update(dt)
 
-	
-	-- print(graphics.interp_fraction)
-
-
-
-	dbg("input", input.debug_shader_toggle_pressed)
+	-- dbg("time", gametime.time)
+	-- dbg("ticks", gametime.ticks)
+	-- dbg("frames", gametime.frames)
 end
 
 function love.draw()
-	graphics.interp_fraction = conf.interpolate_timestep and clamp(accumulated_time / frame_time, 0, 1) or 1
+	-- graphics.interp_fraction = conf.interpolate_timestep and clamp(accumulated_time / frame_time, 0, 1) or 1
 	-- graphics.interp_fraction = stepify(graphics.interp_fraction, 0.1)
 
 	game.draw()
