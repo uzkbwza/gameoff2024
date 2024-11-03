@@ -63,28 +63,43 @@ function love.load()
 	textures = graphics.textures
 end
 
+
+local function dynamic_update(dt)
+	game.update(dt)
+	gametime.time = gametime.time + dt
+	gametime.frames = gametime.frames + 1
+	debug.update(frame_time * 60)
+end
+
 function love.update(dt)
 
 	dbg("fps", love.timer.getFPS())
 	dbg("memory use (kB)", floor(collectgarbage("count")))
 
 	accumulated_time = accumulated_time + dt
+
 	local delta_frame = min(dt * 60, conf.max_delta * 60)
 
-	input.update(dt)
-	game.update(delta_frame)
-	gametime.time = gametime.time + dt
-	gametime.frames = gametime.frames + 1
-	
+	if conf.interpolate_timestep then
+		input.update(delta_frame)
+		dynamic_update(delta_frame)
+	end
+
 	for i = 1, conf.max_fixed_ticks_per_frame do
 		if accumulated_time < frame_time then
 			break
 		end
 		
-		-- print("fixed")
+		if not conf.interpolate_timestep then
+			input.update(frame_time * 60)
+			dynamic_update(frame_time)
+			input.fixed = input
+		else
+			input.fixed_update(frame_time * 60)
+		end
+		
 		game.fixed_update(frame_time * 60)
-		-- fixed_update input AFTER game always! or else it will clear pressed inputs before the game can read them
-		input.fixed_update(dt)
+
 		accumulated_time = accumulated_time - frame_time
 		gametime.ticks = gametime.ticks + 1
 	end
@@ -94,14 +109,19 @@ function love.update(dt)
 	
 	-- print(graphics.interp_fraction)
 
-	debug.update(dt)
+
+
+	dbg("input", input.debug_shader_toggle_pressed)
 end
 
 function love.draw()
-	graphics.interp_fraction = conf.enable_fixed_timestep_interpolation and clamp(accumulated_time / frame_time, 0, 1) or 1
+	graphics.interp_fraction = conf.interpolate_timestep and clamp(accumulated_time / frame_time, 0, 1) or 1
 	-- graphics.interp_fraction = stepify(graphics.interp_fraction, 0.1)
 
 	game.draw()
+	dbg("draw calls", love.graphics.getStats().drawcalls)
+	dbg("interp_fraction", graphics.interp_fraction)
+
 end
 
 function love.joystickadded(joystick)
@@ -110,4 +130,29 @@ end
 
 function love.joystickremoved(joystick)
 	input.joystick_removed(joystick)
+end
+
+function love.keypressed(key)
+	input.keypressed(key)
+end
+
+function love.keyreleased(key)
+	input.keyreleased(key)
+end
+
+function love.gamepadpressed(gamepad, button)
+	input.joystick_pressed(gamepad, button)
+end
+
+function love.gamepadreleased(gamepad, button)
+	input.joystick_released(gamepad, button)
+end
+
+
+function love.joystickpressed(joystick, button)
+	input.joystick_pressed(joystick, button)
+end
+
+function love.joystickreleased(joystick, button)
+	input.joystick_released(joystick, button)
 end

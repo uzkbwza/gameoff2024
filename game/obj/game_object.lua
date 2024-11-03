@@ -2,7 +2,8 @@ local GameObject = Object:extend()
 
 function GameObject:new(x, y)
 	--- remember to use GameObject.super.new(self, x, y)
-	
+	-- self:setup_base_functions()
+
 	self.destroyed = Signal()
 	self.removed = Signal()
 	self.added = Signal()
@@ -42,11 +43,29 @@ function GameObject:new(x, y)
 	self.visibility_changed = nil
 	self.update_changed = nil
 	self.static = false
+	self.should_update_interpolation = false
 
 	self.is_bump_object = nil
 
-	
 end
+
+function GameObject:on_moved()
+	self.should_update_interpolation = true
+	self.moved:emit()
+end
+
+function GameObject.dummy() end
+
+-- function GameObject:setup_base_functions()
+-- 	if conf.interpolate_timestep then
+-- 		self.draw_shared = self.draw_shared_interpolated
+-- 	else
+-- 		self.update_interpolated_position = GameObject.dummy
+-- 		self.reset_interpolation = GameObject.dummy
+-- 		self.draw_shared = self.draw_shared_uninterpolated
+-- 	end
+-- end
+
 
 function GameObject:add_scale2()
 	self.scale2 = Vec2(1, 1)
@@ -101,7 +120,11 @@ function GameObject:spawn_object(obj)
 end
 
 function GameObject:get_input_table()
-	return self.scene:get_input_table()
+	return self.base_scene:get_input_table()
+end
+
+function GameObject:get_interp_fraction()
+	return self.base_scene.interp_fraction
 end
 
 function GameObject:movev(dv)
@@ -164,11 +187,17 @@ function GameObject:set_bump_world(world)
 end
 
 function GameObject:move_to_bump(x, y, filter, noclip)
+	
+	local old_x = self.pos.x
+	local old_y = self.pos.y
+
 	filter = filter or self.filter
 	if noclip then 
 		self.pos.x = x
 		self.pos.y = y
-		self.moved:emit()
+		if old_x ~= self.pos.x or old_y ~= self.pos.y then
+			self:on_moved()
+		end
 		return
 	end
 	local actual_x, actual_y, collisions, num_collisions = self.bump_world:move(self, x - self.collision_rect.width / 2, y - self.collision_rect.height / 2, filter)
@@ -180,7 +209,9 @@ function GameObject:move_to_bump(x, y, filter, noclip)
 		self:process_collision(col.other, col.dx, col.dy)
 	end
 
-	self.moved:emit()
+	if old_x ~= self.pos.x or old_y ~= self.pos.y then
+		self:on_moved()
+	end
 end
 
 function GameObject:process_collision(other, dx, dy)
@@ -188,11 +219,15 @@ end
 
 ---@diagnostic disable-next-line: duplicate-set-field
 function GameObject:move_to(x, y)
+	local old_x = self.pos.x
+	local old_y = self.pos.y
 
 	self.pos.x = x
 	self.pos.y = y
 
-	self.moved:emit()
+	if old_x ~= self.pos.x or old_y ~= self.pos.y then
+		self:on_moved()
+	end
 end
 
 function GameObject:movev_to(v)
@@ -210,16 +245,14 @@ end
 
 function GameObject:reset_interpolation()
 	-- resets the physics interpolation
+	-- print(self.i_prev_pos)
+
 	self.i_prev_pos.x = self.pos.x
 	self.i_prev_pos.y = self.pos.y
 	self.i_prev_rot = self.rot
 	self.i_prev_scale.x = self.scale.x
 	self.i_prev_scale.y = self.scale.y
-	if self.has_scale2 then
-		self._prev_scale2_viz.x = self.scale2.x
-		self._prev_scale2_viz.y = self.scale2.y
-	end
-
+	self.should_update_interpolation = false
 end
 
 function GameObject:set_update(on)
@@ -248,42 +281,56 @@ end
 -- 	graphics.rectangle("fill", -50, -50, 100, 100)
 -- end
 
+-- function GameObject:draw_shared_interpolated(...)
+-- 	self:update_interpolated_position()
+-- 	self:_draw_shared(self.i_pos, self.i_rot, self.i_scale, ...)
+-- end
+
+-- function GameObject:draw_shared_uninterpolated(...)
+-- 	self:_draw_shared(self.pos, self.rot, self.scale, ...)
+-- end
+
+
 function GameObject:update_interpolated_position()
-	local t = self.scene.interp_fraction
+	-- if true then return end
+	local lerp = lerp
+	local lerp_angle = lerp_angle
+	local t = self:get_interp_fraction()
+	-- print(self.pos)
+
 	self.i_pos.x = lerp(self.i_prev_pos.x, self.pos.x, t)
 	self.i_pos.y = lerp(self.i_prev_pos.y, self.pos.y, t)
 	self.i_rot = lerp_angle(self.i_prev_rot, self.rot, t)
 	self.i_scale.x = lerp(self.i_prev_scale.x, self.scale.x, t)
 	self.i_scale.y = lerp(self.i_prev_scale.y, self.scale.y, t)
-	if self.has_scale2 then
-		self.i_scale2.x = lerp(self._prev_scale2_viz.x, self.scale2.x, t)
-		self.i_scale2.y = lerp(self._prev_scale2_viz.y, self.scale2.y, t)
-	end
 end
 
-
 function GameObject:draw_shared(...)
-	if self.draw == nil then
-		return
-	end
+-- end
 
-	if not self.visible then
-		return
-	end
-	-- assert(self.draw ~= nil, "GameObject:draw_shared() called but no draw function implemented")
+-- function GameObject:_draw_shared(pos, rot, scale, ...)
 
+	-- using my wrapper eats some performance so im not using it here
+	-- local pos = self.i_pos
+	-- local rot = self.i_rot
+	-- local scale = self.i_scale
+	-- local pos = self.pos
+	-- local scale = self.scale
+	-- local rot = self.rot
+	-- if self.should_update_interpolation then
 	self:update_interpolated_position()
-	graphics.set_color(1, 1, 1, 1)
-	graphics.push()
-	graphics.translate(self.i_pos.x, self.i_pos.y)
-	graphics.rotate(self.i_rot)
-	graphics.scale(self.i_scale.x, self.i_scale.y)
-	if self.has_scale2 then
-		-- TODO: fix this
-		graphics.scale(vec2_rotated(self.i_scale2.x, self.i_scale2.y, self.i_rot))
-	end
+	local pos = self.i_pos
+	local scale = self.i_scale
+	local rot = self.i_rot
+	-- end
+	love.graphics.setColor(1, 1, 1, 1)
+	love.graphics.push()
+	love.graphics.translate(pos.x, pos.y)
+	love.graphics.rotate(rot)
+	love.graphics.scale(scale.x, scale.y)
+
 	self:draw(...)
-	graphics.pop()
+	love.graphics.pop()
 end
 
 function GameObject:destroy()
@@ -317,5 +364,6 @@ function GameObject:to_world(pos)
 end
 
 function GameObject:exit() end
+
 
 return GameObject

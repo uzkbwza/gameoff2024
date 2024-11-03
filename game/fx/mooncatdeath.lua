@@ -64,7 +64,6 @@ function DeathEffect:draw(_, ticks, t)
 		graphics.pop()
 	end
 
-
 end
 
 return DeathEffect

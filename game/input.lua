@@ -14,7 +14,15 @@ function input.load()
 
 	input.mapping = conf.input_actions
 	input.vectors = conf.input_vectors
-	
+
+	input.keyboard_held = {}
+
+	input.joystick_held = {}
+
+	input.fixed.keyboard_held = {}
+
+	input.fixed.joystick_held = {}
+
 	input.dummy.mapping = conf.input_actions
 	input.dummy.vectors = conf.input_vectors
 	
@@ -80,7 +88,7 @@ function input.joystick_removed(joystick)
 	end
 end
 
-function input.check_input_combo(table, joystick)
+function input.check_input_combo(table, joystick, input_table)
 	if table == nil then
 		return false
 	end
@@ -89,11 +97,11 @@ function input.check_input_combo(table, joystick)
 	for _, keycombo in ipairs(table) do
 		if type(keycombo) == "string" then
 			if joystick == nil then 
-				if love.keyboard.isDown(keycombo) then
+				if input_table.keyboard_held[keycombo] ~= nil then
 					pressed = true
 				end
 			else
-				if joystick:isGamepadDown(keycombo) then
+				if input_table.joystick_held[keycombo] ~= nil then
 					pressed = true
 				end
 			end
@@ -102,12 +110,12 @@ function input.check_input_combo(table, joystick)
 			local all_pressed = true
 			for _, key in ipairs(keycombo) do
 				if joystick == nil then 
-					if not love.keyboard.isDown(key) then
+					if input_table.keyboard_held[key] == nil then
 						all_pressed = false
 						break
 					end
 				else
-					if not joystick:isGamepadDown(key, joystick) then
+					if input_table.joystick_held[key] == nil then
 						all_pressed = false
 						break
 					end
@@ -140,12 +148,12 @@ function input.process(table)
 			goto skip
 		end
 
-		if input.check_input_combo(mapping.keyboard) then
+		if input.check_input_combo(mapping.keyboard, nil, table) then
 			pressed = true
 		end
 
 		for _, joystick in ipairs(input.joysticks) do
-			if input.check_input_combo(mapping.joystick, joystick) then
+			if input.check_input_combo(mapping.joystick, joystick, table) then
 				pressed = true
 			end
 
@@ -188,9 +196,9 @@ function input.process(table)
 			table[g[action].amount] = 0
 		end
 
-		::skip::
-
+		
 		table[action] = pressed
+		::skip::
 	end
 
 	for k, dirs in pairs(table.vectors) do
@@ -237,6 +245,11 @@ function input.process(table)
 		-- print(v)
 	end
 
+	for k, v in pairs(table.keyboard_held) do
+		if v == -1 then
+			table.keyboard_held[k] = nil
+		end
+	end
 end	
 
 function input.update(dt)
@@ -247,5 +260,46 @@ function input.fixed_update(dt)
 	input.process(input.fixed)
 end
 
+function input.keypressed(key)
+	if input.keyboard_held[key] == nil then
+		input.keyboard_held[key] = conf.interpolate_timestep and gametime.frames
+	end
+
+	if input.fixed.keyboard_held[key] == nil then
+		input.fixed.keyboard_held[key] = gametime.ticks
+	end
+end
+
+function input.keyreleased(key)
+	if input.keyboard_held[key] == gametime.frames then
+		input.keyboard_held[key] = -1
+	else
+		input.keyboard_held[key] = nil
+	end
+	if input.fixed.keyboard_held[key] == gametime.ticks then
+		input.fixed.keyboard_held[key] = -1
+	else
+		input.fixed.keyboard_held[key] = nil
+	end
+end
+
+function input.joystick_pressed(joystick, button)
+	if input.joystick_held[button] == nil then
+		input.joystick_held[button] = gametime.frames
+	end
+end
+
+function input.joystick_released(joystick, button)
+	if input.joystick_held[button] == gametime.frames then
+		input.joystick_held[button] = -1
+	else
+		input.joystick_held[button] = nil
+	end
+	if input.fixed.joystick_held[button] == gametime.ticks then
+		input.fixed.joystick_held[button] = -1
+	else
+		input.fixed.joystick_held[button] = nil
+	end
+end
 
 return input

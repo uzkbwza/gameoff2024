@@ -37,8 +37,10 @@ function rng.random_angle()
 	return rng.randf(0, tau)
 end
 
-function rng.random_vec2()
-	return angle_to_vec2(rng.random_angle())
+function rng.random_vec2(x,y)
+	x = x or 1
+	y = y or 1
+	return angle_to_vec2(rng.random_angle()):mul_in_place(x, y)
 end
 
 local function _meta_call_random(table, min, max)

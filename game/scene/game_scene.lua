@@ -28,6 +28,8 @@ end
 
 function GameScene:new()
     GameScene.super.new(self)
+	self.scene = self
+
 
     self.objects = {}
     self.objects_indices = {}
@@ -72,9 +74,6 @@ function GameScene:new()
     self.viewport_size = Vec2(conf.viewport_size.x, conf.viewport_size.y)
     self.camera = self:add_object(Camera())
 
-    self.scene = self
-    -- self.camera.pos = self.viewport_size / 2
-
 end
 
 function GameScene:create_bump_world(cell_size)
@@ -89,7 +88,6 @@ function GameScene:update_shared(dt)
     for _, obj in ipairs(self.update_objects) do
         obj:update_shared(dt)
     end
-
 end
 
 function GameScene:update(dt)
@@ -179,23 +177,20 @@ function GameScene:pop()
 end
 
 function GameScene:get_input_table()
+	return self:get_base_scene().input
+end
+
+function GameScene:get_base_scene()
 	local s = self.scene
 	while s ~= s.scene do
 		s = s.scene
 	end
-	return s.input
+	return s
 end
 
 function GameScene:add_object(obj)
-	if self.objects_indices[obj] then 
-		error("Object already in scene") 
-	end
-
-	if obj == nil then
-		error("Object is nil")
-	end
-
     obj.scene = self
+	obj.base_scene = self:get_base_scene()
     add_to_array(self.objects, self.objects_indices, obj)
 
 	self:add_to_update_tables(obj)
@@ -248,15 +243,8 @@ function GameScene:add_to_update_tables(obj)
 end
 
 function GameScene:remove_object(obj)
-	if not self.objects_indices[obj] then 
-		error("Object not in scene") 
-	end
-
-	if obj == nil then
-		error("Object is nil")
-	end
-	
     obj.scene = nil
+	obj.base_scene = nil
     remove_from_array(self.objects, self.objects_indices, obj)
     remove_from_array(self.fixed_update_objects, self.fixed_update_indices, obj)
     remove_from_array(self.update_objects, self.update_indices, obj)
