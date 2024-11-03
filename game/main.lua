@@ -75,7 +75,7 @@ function love.run()
 		gametime.time = gametime.time + delta_frame
 		gametime.ticks = floor(gametime.time)
 		gametime.frames = gametime.frames + 1
-		if love.timer then love.timer.sleep(0.001) end
+		if love.timer and not debug.can_draw() then love.timer.sleep(0.001) end
 
 	end
 	
@@ -89,8 +89,11 @@ function love.load()
 end
 
 function love.update(dt)
-	dbg("fps", love.timer.getFPS())
-	dbg("memory use (kB)", floor(collectgarbage("count")))
+	if gametime.ticks % 10 == 0 then 
+		-- dbg("ticks", gametime.ticks)
+		dbg("fps", love.timer.getFPS())
+		dbg("memory use (kB)", floor(collectgarbage("count")))
+	end
 
 	input.update(dt)
 	game.update(dt)
@@ -100,6 +103,7 @@ function love.update(dt)
 	-- dbg("time", gametime.time)
 	-- dbg("ticks", gametime.ticks)
 	-- dbg("frames", gametime.frames)
+
 end
 
 function love.draw()
@@ -107,9 +111,10 @@ function love.draw()
 	-- graphics.interp_fraction = stepify(graphics.interp_fraction, 0.1)
 
 	game.draw()
-	dbg("draw calls", love.graphics.getStats().drawcalls)
-	dbg("interp_fraction", graphics.interp_fraction)
-
+	if gametime.ticks % 10 == 0 then 
+		dbg("draw calls", love.graphics.getStats().drawcalls)
+		dbg("interp_fraction", graphics.interp_fraction)
+	end
 end
 
 function love.joystickadded(joystick)

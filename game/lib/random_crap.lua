@@ -9,10 +9,10 @@ function UUID()
 end
 
 
-function to_seconds(n)
+function frames_to_seconds(n)
 	return n / 60
 end
 
-function to_frames(n)
+function seconds_to_frames(n)
 	return n * 60
 end

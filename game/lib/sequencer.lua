@@ -49,6 +49,10 @@ function Sequencer:chain(...)
 	return func
 end
 
+function Sequencer:start_chain(...)
+	self:start(self:chain(...))
+end
+
 function Sequencer:loop(func, times)
 	assert(times == nil or type(times) == "number", "times must be a number")
 	if times == nil then

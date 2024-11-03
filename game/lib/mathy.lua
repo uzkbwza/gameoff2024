@@ -135,10 +135,20 @@ function splerp_vec(a, b, delta, half_life)
     return b + (a - b) * t  -- Uses Vec2 operations
 end
 
+function splerp_vec_unpacked(ax, ay, bx, by, delta, half_life)
+	local t = pow(2, -delta / (half_life / 60))
+	return bx + (ax - bx) * t, by + (ay - by) * t
+end
+
 -- Exponential decay function (splerp) for Vec3
 function splerp_vec3(a, b, delta, half_life)
     local t = pow(2, -delta / (half_life / 60))
     return b + (a - b) * t  -- Uses Vec3 operations
+end
+
+function splerp_vec3_unpacked(ax, ay, az, bx, by, bz, delta, half_life)
+	local t = pow(2, -delta / (half_life / 60))
+	return bx + (ax - bx) * t, by + (ay - by) * t, bz + (az - bz) * t
 end
 
 function lerp_angle(a, b, t)

@@ -1,7 +1,7 @@
 local debuggy = setmetatable({}, {__index = debug})
 
 debug.enabled = true
-debug.draw = true
+debug.draw = false
 debug.lines = {}
 
 function debuggy.can_draw()

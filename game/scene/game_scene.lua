@@ -69,6 +69,7 @@ function GameScene:new()
     self.viewport_size = Vec2(conf.viewport_size.x, conf.viewport_size.y)
     self.camera = self:add_object(Camera())
 
+	
 end
 
 function GameScene:create_bump_world(cell_size)
@@ -123,7 +124,7 @@ function GameScene:draw_shared()
 		offset.x = -offset.x + (self.viewport_size.x / 2) / zoom
 	end
 
-	
+	graphics.set_color(1, 1, 1, 1)
     graphics.scale(zoom, zoom)
     graphics.translate(offset.x, offset.y)
     self:draw()

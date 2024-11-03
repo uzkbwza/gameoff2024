@@ -43,9 +43,9 @@ local conf = {
 	display_scale = 4,
 
 	-- delta
-	use_fixed_delta = true,
+	use_fixed_delta = false,
 	fixed_tickrate = 60,
-	max_delta = 600000000000000,
+	max_delta = math.huge,
 	max_fixed_ticks_per_frame = 5,
 
 	-- input

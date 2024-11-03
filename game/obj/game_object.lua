@@ -47,18 +47,23 @@ function GameObject.dummy() end
 function GameObject:add_sequencer()
 	assert(self.sequencer == nil, "GameObject:add_sequencer() called but sequencer already exists")
 	self.sequencer = Sequencer()
-	table.insert(self._update_functions, function(dt) self.sequencer:update(dt) end)
+	self:add_update_function(function(dt) self.sequencer:update(dt) end)
 end
 
 function GameObject:add_elapsed_time()
 	self.elapsed = 1
-	table.insert(self._update_functions, function(dt) self.elapsed = self.elapsed + dt end)
+	self:add_update_function(function(dt) self.elapsed = self.elapsed + dt end)
 end
 
 function GameObject:add_elapsed_ticks()
 	assert(self.elapsed ~= nil, "GameObject:add_elapsed_ticks() called but no elapsed time implemented")
 	self.tick = 1
-	table.insert(self._update_functions, function(dt) self.tick = floor(self.elapsed) end)
+	self:add_update_function(function(dt) self.tick = floor(self.elapsed) end)
+end
+
+function GameObject:add_update_function(func)
+	table.insert(self._update_functions, func)
+
 end
 
 function GameObject:update_shared(dt, ...)
@@ -212,14 +217,21 @@ function GameObject:draw_shared(...)
 
 	local pos = self.pos
 	local scale = self.scale
-	-- end
-	love.graphics.setColor(1, 1, 1, 1)
+	
+	-- using the api here directly because it's faster
 	love.graphics.push()
 	love.graphics.translate(pos.x, pos.y)
 	love.graphics.rotate(self.rot)
 	love.graphics.scale(scale.x, scale.y)
+	love.graphics.setColor(1, 1, 1, 1)
 
 	self:draw(...)
+	if debug.can_draw() then 
+		if self.collision_rect then
+			love.graphics.setColor(1, 0, 0, 0.5)
+			love.graphics.rectangle("fill", -self.collision_rect.width / 2, -self.collision_rect.height / 2, self.collision_rect.width, self.collision_rect.height)
+		end
+	end
 	love.graphics.pop()
 end
 
