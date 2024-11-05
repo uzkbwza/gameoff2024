@@ -1,13 +1,14 @@
 local game = {}
 
 game.scene_stack = {}
-game.queued_scene = nil
+game.queue = {}
 game.sequencer = Sequencer()
 
 game.scenes = {
 	Base = "game_scene",
 	Game = "main_game_scene",
 	Pause = "pause_scene",
+	LevelEdit = "level_editor",
 }
 
 function game.load()
@@ -17,17 +18,40 @@ function game.load()
 	game.transition_to_scene("Game")
 end
 
-function game.queue_scene(scene)
-	game.queued_scene = scene
+function game.push_deferred(scene)
+	table.push_back(game.queue, scene)
+end
+
+function game.pop_deferred()
+	table.push_back(game.queue, "pop")
 end
 
 function game.push_scene(scene)
 	scene = game.scene_from_name(scene)
 	table.push_front(game.scene_stack, scene)
-	scene.scene_pushed:connect(game.queue_scene)
-	scene.scene_popped:connect(game.pop_scene)
+	game.init_scene(scene)
+end
+
+
+
+function game.init_scene(scene)
+	scene.scene_pushed:connect(game.push_deferred)
+	scene.scene_popped:connect(game.pop_deferred)
 	scene:enter_shared()
 end
+
+function game.replace_scene(scene, new)
+	for i, v in ipairs(game.scene_stack) do 
+		if v == scene then 
+			v:exit_shared()
+			
+			local new_scene = game.scene_from_name(new)
+			game.scene_stack[i] = new_scene
+			game.init_scene(new_scene)
+		end
+	end
+end
+
 
 function game.pop_scene()
 	local scene = table.pop_front(game.scene_stack)
@@ -48,7 +72,7 @@ function game.transition_to_scene(new_scene)
 
 	game.pop_scene()
 	game.scene_stack = {}
-	game.queue_scene(new_scene)
+	game.push_deferred(new_scene)
 end
 
 function game.update_input_stack(table)
@@ -63,14 +87,18 @@ end
 
 function game.update(dt)
 	-- input
-	if game.queued_scene then
-		game.push_scene(game.queued_scene)
-		game.queued_scene = nil
-	end
-
 	game.update_input_stack(input)
 	
 	-- update
+	while table.length(game.queue) > 0 do
+		local scene = table.pop_front(game.queue)
+		if scene == "pop" then
+			game.pop_scene()
+		else
+			game.push_scene(scene)
+		end
+	end
+
 	for _, v in ipairs(game.scene_stack) do
 		v:update_shared(dt)
 		if v.blocks_logic then

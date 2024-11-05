@@ -5,8 +5,21 @@ function stringy.endswith(s, e)
   return result ~= nil
 end
 
-function stringy.strip_whitespace(s)
-	local result = string.gsub(s, "^%s*(.-)%s*$", "%1")
+function stringy.strip_whitespace(s, left, right)
+	if left == nil then
+		left = true
+	end
+	if right == nil then
+		right = true
+	end
+	local result = s
+	if left then
+		result = string.match(result, "^%s*(.-)$")
+	end
+	if right then
+		result = string.match(result, "^(.-)%s*$")
+	end
+	-- local result = string.gsub(s, "^%s*(.-)%s*$", "%1")
 	return result
 end
 

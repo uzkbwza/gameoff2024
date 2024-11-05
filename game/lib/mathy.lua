@@ -75,8 +75,27 @@ function round(n)
     return floor(n + 0.5)
 end
 
+function stepify_safe(s, step)
+	if step == 0 then return s end
+    return round(s / step) * step
+end
+
 function stepify(s, step)
     return round(s / step) * step
+end
+
+function stepify_ceil_safe(s, step)
+	if step == 0 then return ceil(s) end
+	return ceil(s / step) * step
+end
+
+function stepify_ceil(s, step)
+	return ceil(s / step) * step
+end
+
+function stepify_floor_safe(s, step)
+	if step == 0 then return floor(s) end
+	return floor(s / step) * step
 end
 
 function stepify_floor(s, step)

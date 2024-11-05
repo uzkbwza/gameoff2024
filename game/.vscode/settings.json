@@ -24,6 +24,7 @@
 		"gametime",
 		"global_input",
 		"usersettings",
-		"audio"
+		"audio",
+		"global_state"
 	],
 }

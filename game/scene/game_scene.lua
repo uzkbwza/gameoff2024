@@ -45,9 +45,9 @@ function GameScene:new()
     self.draw_sort = nil
     --[[	example: y-sorting function for draw objects
 
-    self.draw_sort = function(a, b)
-        return a.pos.y < b.pos.y
-    end
+		self.draw_sort = function(a, b)
+			return a.pos.y < b.pos.y
+		end
 
     ]]--
 
@@ -69,7 +69,6 @@ function GameScene:new()
     self.viewport_size = Vec2(conf.viewport_size.x, conf.viewport_size.y)
     self.camera = self:add_object(Camera())
 
-	
 end
 
 function GameScene:create_bump_world(cell_size)
@@ -99,13 +98,31 @@ function GameScene:draw()
         self.draw_indices[obj] = i
     end
 
+
 	for _, obj in ipairs(self.draw_objects) do
 		obj:draw_shared()
 	end
 
+	if debug.can_draw() then 
+		for _, obj in ipairs(self.draw_objects) do
+			obj:debug_draw_bounds()
+		end
+		for _, obj in ipairs(self.draw_objects) do
+			obj:debug_draw_shared()
+		end
+	end
+
+
 end
 
 function GameScene:draw_shared()
+	if self.clear_color then
+		graphics.push()
+		graphics.origin()
+		graphics.clear(self.clear_color.r, self.clear_color.g, self.clear_color.b)
+		graphics.pop()
+	end
+
     graphics.push()
 	local offset = Vec2(0, 0)
 	local zoom = 1.0
@@ -126,7 +143,7 @@ function GameScene:draw_shared()
 
 	graphics.set_color(1, 1, 1, 1)
     graphics.scale(zoom, zoom)
-    graphics.translate(offset.x, offset.y)
+    graphics.translate(floor(offset.x), floor(offset.y))
     self:draw()
     graphics.pop()
 end
@@ -138,6 +155,10 @@ end
 function GameScene:enter_shared()
     self.input = input.dummy
     self:enter()
+end
+
+function GameScene:spawn_object(obj)
+	return self:add_object(obj)
 end
 
 function GameScene:exit_shared()
@@ -198,7 +219,7 @@ function GameScene:add_object(obj)
         end)
     end
 
-    obj.destroyed:connect(function() self:remove_object(obj) end)
+    obj.destroyed:connect(function() self:remove_object(obj) end, true)
 
 	if obj.is_bump_object then 
 		obj:set_bump_world(self.bump_world)
@@ -211,7 +232,7 @@ function GameScene:add_object(obj)
 end
 
 function GameScene:add_to_update_tables(obj)
-	
+
     if not obj.static then
         add_to_array(self.update_objects, self.update_indices, obj)
     end
@@ -223,6 +244,10 @@ function GameScene:add_to_update_tables(obj)
 end
 
 function GameScene:remove_object(obj)
+	if not obj.scene == self then
+		return
+	end
+
     obj.scene = nil
 	obj.base_scene = nil
     remove_from_array(self.objects, self.objects_indices, obj)

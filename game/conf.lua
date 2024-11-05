@@ -36,11 +36,11 @@ end
 local conf = {
 	-- display
 	viewport_size = Vec2(
-		288,
-		192
+		240,
+		160
 	),
 
-	display_scale = 4,
+	display_scale = 5,
 
 	-- delta
 	use_fixed_delta = false,
@@ -110,6 +110,14 @@ local conf = {
 			}
 		},
 
+		debug_editor_toggle = {
+			debug = true,
+			keyboard = { 
+				{ "lctrl", "e" }, 
+				{ "rctrl", "e" } 
+			}
+		},
+
 		debug_draw_toggle = {
 			debug = true,
 			keyboard = { 
@@ -124,7 +132,15 @@ local conf = {
 				{"lctrl", "s"}, 
 				{"rctrl", "s"}
 			}
-		}
+		},
+
+		debug_count_memory = {
+			debug = true,
+			keyboard = { 
+				{"lctrl", "m"}, 
+				{"rctrl", "m"}
+			}
+		},
 	},
 
 	input_vectors = {

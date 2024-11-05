@@ -26,9 +26,9 @@ vec4 effect(vec4 color, Image texture, vec2 texture_coords, vec2 screen_coords) 
 
     float dist = (1.0 - pixel_uv.x);
     float bsize = (pixel_scale * 0.002) * border_size;
-    dist = min(pixel_uv.y, dist);
+    dist = min(1.0 - pixel_uv.y, dist);
 
-    float dist2 = 1.0 - pixel_uv.x;
+    float dist2 = pixel_uv.x;
     dist2 = min(1.0 - pixel_uv.y, dist2);
     float border = 0.5 + smoothstep(bsize - border_feather, bsize + border_feather, dist) * 0.5;
     float border2 = smoothstep(bsize - border_feather, bsize + border_feather, dist2) * 0.5;

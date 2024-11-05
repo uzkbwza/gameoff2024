@@ -1,4 +1,6 @@
 local Packer = require("lib.packer.packer")
+local utf8 = require "utf8"
+
 
 local graphics = {
 	canvas = nil,
@@ -10,8 +12,12 @@ local graphics = {
 	sprite_paths = nil,
 	scene_stack = nil,
 	interp_fraction = 0,
+	shader = require "shader.shader",
+	main_canvas_start_pos = Vec2(0,0),
+	main_canvas_size = Vec2(0,0),
+	main_canvas_scale = 1,
+	main_viewport_size = Vec2(0,0),
 	palette = nil,
-	shader = require "shader.shader"
 }
 
 function graphics.load_textures(texture_atlas)
@@ -77,7 +83,6 @@ function graphics.load()
 	-- graphics.sequencer:start(function()
 	-- 	load_textures(true)
 	-- end)
-	graphics.load_textures(false)
 
 	graphics.palette = {
 		black = graphics.color_from_html("02040a"),
@@ -114,6 +119,19 @@ function graphics.load()
 		darkred = graphics.color_from_html("420a0b"),
 	}
 
+	graphics.load_textures(false)
+
+	local font_paths = filesystem.get_files_of_type("assets/font", "ttf", true)
+	graphics.font = {
+
+	}
+	
+	for _, v in ipairs(font_paths) do 
+		graphics.font[filesystem.filename_to_asset_name(v, "ttf", "font_")] = graphics.new_font(v, v:find("8") and 8 or 16)
+	end
+	graphics.font.main = graphics.font["PixelOperator-Bold"]
+	graphics.set_font(graphics.font.main)
+
 end
 
 function graphics.color_from_html(str)
@@ -122,7 +140,6 @@ function graphics.color_from_html(str)
 		r = tonumber("0x" .. string.sub(str, 1, 2)) / 255,
 		g = tonumber("0x" .. string.sub(str, 3, 4)) / 255,
 		b = tonumber("0x" .. string.sub(str, 5, 6)) / 255,
-		a = 1
 	}
 end
 
@@ -166,6 +183,7 @@ function graphics.main_viewport_draw()
 	graphics.set_color(1,1,1)
 	graphics.set_canvas()
 
+	-- TODO: stop generating garbage with vec2s
 	local window_width, window_height = graphics.get_dimensions()
 	local window_size = Vec2(window_width, window_height)
 	local viewport_size = Vec2(conf.viewport_size.x, conf.viewport_size.y)
@@ -186,6 +204,11 @@ function graphics.main_viewport_draw()
 		graphics.set_shader(shader)
 	end
 
+	graphics.main_canvas_start_pos = canvas_pos
+	graphics.main_canvas_size = canvas_size
+	graphics.main_canvas_scale = viewport_pixel_scale
+	graphics.main_viewport_size = viewport_size
+
 	graphics.draw(graphics.canvas, math.floor(canvas_pos.x), math.floor(canvas_pos.y), 0, viewport_pixel_scale, viewport_pixel_scale)
 
 	graphics.set_shader()
@@ -193,6 +216,10 @@ function graphics.main_viewport_draw()
 	graphics.set_canvas()
 
 	debug.printlines(0, 0)
+end
+
+function graphics.screen_pos_to_canvas_pos(sposx, sposy)
+	return ((sposx - graphics.main_canvas_start_pos.x) / graphics.main_canvas_scale), ((sposy - graphics.main_canvas_start_pos.y) / graphics.main_canvas_scale)
 end
 
 function graphics.update(dt)
@@ -209,6 +236,9 @@ end
 --- love API wrappers
 function graphics.set_color(r, g, b, a)
 	if type(r) == "table" then
+		if g ~= nil then
+			r.a = g
+		end
 		g = r.g
 		b = r.b
 		a = r.a
@@ -291,9 +321,15 @@ end
 
 function graphics.clear(r, g, b, a)
 	if type(r) == "table" then
+		if g == nil then 
+			g = 1.0
+		end
+		if r.a == nil then
+			r.a = g
+		end
 		g = r.g
 		b = r.b
-		a = r.a
+		a = r.a or g
 		r = r.r
 	end
 	love.graphics.clear(r, g, b, a)
@@ -350,12 +386,13 @@ end
 
 function graphics.print(text, x, y, r, sx, sy, ox, oy, kx, ky)
 	graphics.push()
-	graphics.set_color(palette.black)
-	love.graphics.print(text, x+1, y + 1, r, sx, sy, ox, oy, kx, ky)
-	love.graphics.print(text, x-1, y - 1, r, sx, sy, ox, oy, kx, ky)
-	love.graphics.print(text, x+1, y - 1, r, sx, sy, ox, oy, kx, ky)
-	love.graphics.print(text, x-1, y + 1, r, sx, sy, ox, oy, kx, ky)
-	graphics.set_color(palette.white)
+	-- graphics.set_color(palette.black)
+	-- love.graphics.print(text, x+1, y + 1, r, sx, sy, ox, oy, kx, ky)
+	-- love.graphics.print(text, x-1, y - 1, r, sx, sy, ox, oy, kx, ky)
+	-- love.graphics.print(text, x+1, y - 1, r, sx, sy, ox, oy, kx, ky)
+	-- love.graphics.print(text, x-1, y + 1, r, sx, sy, ox, oy, kx, ky)
+	-- graphics.set_color(palette.white)
+	
 	love.graphics.print(text, x, y, r, sx, sy, ox, oy, kx, ky)
 	graphics.pop()
 end

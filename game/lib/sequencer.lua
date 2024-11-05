@@ -12,7 +12,7 @@ s:start(
 		-- print hello
 		function() print("hello") end,
 		-- tween my position to the left over a second
-		s:tween_property(self.pos, "x", -30, 60.0, "inOutQuad"),
+		s:tween_property(self.pos, "x", self.pos.x, -30, 60.0, "inOutQuad"),
 		-- wait until i move back to the right
 		s:wait_for(function() return self.pos.x >= 0 end),
 		-- print hello again
@@ -108,23 +108,27 @@ function Sequencer:wait(duration)
 	end
 end
 
-function Sequencer:tween(func, value_start, value_end, duration, easing)
+function Sequencer:tween(func, value_start, value_end, duration, easing, step)
 	return function()
 		local start = self.elapsed
 		local finish = self.elapsed + duration
 		local ease_func = ease(easing)
 
+		if step == nil then
+			step = 0
+		end
 
 		while self.elapsed < finish do
-			local t = ease_func((self.elapsed - start) / duration)
+			local t = ease_func(stepify_safe((self.elapsed - start) / duration, step))
 			func(value_start + t * (value_end - value_start))
 			coroutine.yield()
 		end
 	end
 end
 
-function Sequencer:tween_property(obj, property, value_end, duration, easing)
-	return self:tween(function(value) obj[property] = value end, obj[property], value_end, duration, easing)
+function Sequencer:tween_property(obj, property, value_start, value_end, duration, easing, step)
+
+	return self:tween(function(value) obj[property] = value end, value_start, value_end, duration, easing, step)
 end
 
 function Sequencer:suspend(chain)

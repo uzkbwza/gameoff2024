@@ -4,8 +4,10 @@ conf = require "conf"
 graphics = require "graphics"
 rng = require "lib.rng"
 gametime = require "time"
+global_state = require "global_state"
 palette = nil
 textures = nil
+
 
 local accumulated_time = 0
 local frame_time = 1 / conf.fixed_tickrate
@@ -75,6 +77,7 @@ function love.run()
 		gametime.time = gametime.time + delta_frame
 		gametime.ticks = floor(gametime.time)
 		gametime.frames = gametime.frames + 1
+		-- if love.timer then love.timer.sleep(0.001) end
 		if love.timer and not debug.can_draw() then love.timer.sleep(0.001) end
 
 	end
@@ -92,9 +95,14 @@ function love.update(dt)
 	if gametime.ticks % 10 == 0 then 
 		-- dbg("ticks", gametime.ticks)
 		dbg("fps", love.timer.getFPS())
+		-- collectgarbage()
 		dbg("memory use (kB)", floor(collectgarbage("count")))
 	end
-
+	
+	if input.debug_count_memory_pressed then 
+		local count = debug.type_count()
+		print(count)
+	end
 	input.update(dt)
 	game.update(dt)
 	
@@ -148,4 +156,16 @@ end
 
 function love.joystickreleased(joystick, button)
 	input.joystick_released(joystick, button)
+end
+
+function love.mousepressed(x, y, button)
+	input.mouse_pressed(x, y, button)
+end
+
+function love.mousereleased(x, y, button)
+	input.mouse_released(x, y, button)
+end
+
+function love.mousemoved(x, y, dx, dy, istouch)
+	input.mouse_moved(x, y, dx, dy, istouch)
 end

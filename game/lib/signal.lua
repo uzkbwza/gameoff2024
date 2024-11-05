@@ -20,3 +20,7 @@ function Signal:emit(...)
 		end
 	end
 end
+
+function Signal:clear()
+	self.connected_listeners = {}
+end

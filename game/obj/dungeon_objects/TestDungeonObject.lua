@@ -1,4 +1,4 @@
-local TestDungeonObject = GameObject:extend()
+local TestDungeonObject = require("obj.dungeon_objects.DungeonObject"):extend()
 
 local bump_info = {
 	rect = Rect.centered(0, 0, 4, 4)

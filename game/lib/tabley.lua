@@ -35,6 +35,23 @@ function tabley.is_empty(t)
 	return next(t) == nil
 end
 
+function tabley.merge(t1, t2, overwrite)
+	for k, v in pairs(t2) do
+		if overwrite or t1[k] == nil then
+			t1[k] = v
+		end
+	end
+end
+
+function tabley.merged(t1, t2, overwrite)
+	local t = {}
+	if t1 == nil then t1 = {} end
+	if t2 == nil then t2 = {} end
+	tabley.merge(t, t1, overwrite)
+	tabley.merge(t, t2, overwrite)
+	return t
+end
+
 function tabley.fast_remove_at(t, index)
 	local length = #t
 	t[index] = t[length]
