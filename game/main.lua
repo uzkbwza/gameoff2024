@@ -77,8 +77,8 @@ function love.run()
 		gametime.time = gametime.time + delta_frame
 		gametime.ticks = floor(gametime.time)
 		gametime.frames = gametime.frames + 1
-		-- if love.timer then love.timer.sleep(0.001) end
-		if love.timer and not debug.can_draw() then love.timer.sleep(0.001) end
+		if love.timer then love.timer.sleep(0.001) end
+		-- if love.timer and not debug.can_draw() then love.timer.sleep(0.001) end
 
 	end
 	
