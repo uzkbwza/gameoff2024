@@ -17,3 +17,17 @@ function seconds_to_frames(n)
 	return n * 60
 end
 
+function flood_fill(x, y, fill, check_solid)
+	local stack = {Vec2(x, y)}
+	while not table.is_empty(stack) do
+		local coord = table.pop_front(stack)
+		if not check_solid(coord.x, coord.y) then 
+			fill(coord.x, coord.y)
+			table.push_back(stack, coord + Vec2(-1, 0))
+			table.push_back(stack, coord + Vec2(1, 0))
+			table.push_back(stack, coord + Vec2(0, -1))
+			table.push_back(stack, coord + Vec2(0, 1))
+		end
+	end
+end
+

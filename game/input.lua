@@ -153,7 +153,7 @@ function input.process(table)
 	for action, mapping in pairs(table.mapping) do
 		local pressed = false
 
-		if action.debug and not debug.enabled then
+		if mapping.debug and not debug.enabled then
 			goto skip
 		end
 
@@ -172,7 +172,7 @@ function input.process(table)
 				local axis = mapping.joystick_axis.axis
 				local dir = mapping.joystick_axis.dir
 				local value = joystick:getGamepadAxis(axis)
-				local deadzone = mapping.joystick_axis.deadzone or 0.1
+				local deadzone = mapping.joystick_axis.deadzone or 0.5
 				if dir == 1 then
 					if value > deadzone then
 						pressed = true

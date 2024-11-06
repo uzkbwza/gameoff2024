@@ -16,6 +16,7 @@ function RoomScene:new(x, y, data)
 	self:add_update_signals()
 
 	self.exits = {}
+	self.room_strings = {}
 
 	self:create_bump_world(64)
 
@@ -68,6 +69,10 @@ function RoomScene:build_from_data(build_data)
 	self.dimensions = (processed_data.bounds.bottomright - processed_data.bounds.topleft) * TILE_SIZE
 	self.center = (processed_data.bounds.bottomright / 2 + processed_data.bounds.topleft) * TILE_SIZE
 
+	for _, string in pairs(processed_data.strings) do
+		table.insert(self.room_strings, string)
+	end
+
 	self.camera:set_limits(
 		(processed_data.bounds.topleft.x - 1) * TILE_SIZE, 
 		(processed_data.bounds.topleft.y - 1) * TILE_SIZE, 
@@ -91,6 +96,10 @@ function RoomScene:build_from_tile(tile, x, y)
 
 	local pos = TILE_SIZE * Vec2(x, y) + Vec2(TILE_SIZE / 2, TILE_SIZE / 2)
 
+	if not tile.nofloor then
+		self:add_object(obj.Floor(pos.x, pos.y, TILE_SIZE))
+	end
+
 	if tile.wall then
 		self:add_object(obj.Wall(pos.x, pos.y, TILE_SIZE))
 	end
@@ -100,9 +109,11 @@ function RoomScene:build_from_tile(tile, x, y)
 	end
 
 	if tile.exit then
-		local exit = obj.Exit(pos.x, pos.y, TILE_SIZE, tile.exit)
 		local processed = self:process_exit_string(tile.exit)
+		local exit = obj.Exit(pos.x, pos.y, TILE_SIZE, tile.exit, processed)
 		local enter_pos = pos
+
+		exit.side = processed.facing_direction == "right" or processed.facing_direction == "left"
 
 		if processed.facing_direction == "up" then
 			enter_pos = pos + Vec2(0, -TILE_SIZE)
@@ -117,15 +128,20 @@ function RoomScene:build_from_tile(tile, x, y)
 		self.exits[tile.character] = table.merged({
 			enter_pos = enter_pos
 		}, processed)
-
-
+		
 		self:add_object(exit)
+	end
+
+	if tile.torch then 
+		local torch = self:add_object(obj.Torch(pos.x, pos.y, TILE_SIZE))
+		if tile.lit then 
+			torch:light()
+		end
 	end
 end
 
 function RoomScene.process_data(data)
 	local tile_data = table.merged(map.default_build_tile_data, data.tile_data)
-
 
 	local layers = {}
 	local strings = data.tiles
@@ -152,12 +168,14 @@ function RoomScene.process_data(data)
 			layer_data.tiles[y] = {}
 			for x = 1, #strippedline do 
 				local char = strippedline:sub(x, x)
+				if char == "_" then goto continue end
 				local data = table.merged({character = char}, tile_data[char])
 
 				layer_data.tiles[y][x] = data or {}
 				
 				if x < min_x then min_x = x
 				elseif x > max_x then max_x = x end
+				::continue::
 			end
 			if y < min_y then min_y = y
 			elseif y > max_y then max_y = y end
@@ -179,6 +197,7 @@ function RoomScene.process_data(data)
 
 	return {
 		layers = layers,
+		strings = strings,
 		bounds = {
 			topleft = Vec2(bounds_min_x, bounds_min_y),
 			bottomright = Vec2(bounds_max_x, bounds_max_y)
@@ -215,10 +234,20 @@ end
 
 function RoomScene:add_player(obj)
 	self:add_object(obj)
-	self.camera_target = self:add_object(SmoothCameraTarget(obj, 3))
+	self.camera_target = self:add_object(SmoothCameraTarget(obj, 6))
 	self.player = obj
 
-	self.player.exit_bumped:connect(function(exit) self:exit_to(self:process_exit_string(exit)) end, true)
+	if self.exit_function == nil then 
+		self.exit_function = function(exit) 
+			self:exit_to(self:process_exit_string(exit))
+		end
+	end
+	
+	self.player.exit_bumped:connect(
+		self,
+		self.exit_function,
+		true
+	)
 
 	self.camera:follow(self.camera_target)
 end
@@ -230,6 +259,6 @@ function RoomScene:remove_player()
 	self.camera:follow(nil)
 	p:clear_signals()
 	return p
-end
+end 
 
 return RoomScene

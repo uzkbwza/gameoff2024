@@ -35,6 +35,73 @@ function tabley.is_empty(t)
 	return next(t) == nil
 end
 
+function tabley.deepcopy(orig, copies)
+	copies = copies or {}
+	local orig_type = type(orig)
+	local copy
+	if orig_type == 'table' then
+		if copies[orig] then
+			copy = copies[orig]
+		else
+			copy = {}
+			copies[orig] = copy
+			for orig_key, orig_value in next, orig, nil do
+				copy[tabley.deepcopy(orig_key, copies)] = tabley.deepcopy(orig_value, copies)
+			end
+			setmetatable(copy, tabley.deepcopy(getmetatable(orig), copies))
+		end
+	else -- number, string, boolean, etc
+		copy = orig
+	end
+	return copy
+end
+
+function tabley.pretty_print(t, max_depth, fd)
+	max_depth = max_depth or math.huge
+    fd = fd or io.stdout
+    local function print(str)
+       str = str or ""
+       fd:write(str.."\n")
+    end
+    local print_r_cache={}
+    local function sub_print_r(t,indent, depth)
+		depth = depth or 0
+		if depth >= max_depth then 
+			print(indent.."..." )
+			return 
+		end
+        if (print_r_cache[tostring(t)]) then
+            print(indent.."*"..tostring(t))
+        else
+            print_r_cache[tostring(t)]=true
+            if (type(t)=="table") then
+                for pos,val in pairs(t) do
+					pos = tostring(pos)
+                    if (type(val)=="table") then
+                        print(indent.."["..pos.."] => "..tostring(t).." {")
+                        sub_print_r(val,indent..string.rep(" ",string.len(pos)+8), depth + 1)
+                        print(indent..string.rep(" ",string.len(pos)+6).."}")
+                    elseif (type(val)=="string") then
+                        print(indent.."["..pos..'] => "'..val..'"')
+                    else
+                        print(indent.."["..pos.."] => "..tostring(val))
+                    end
+                end
+            else
+                print(indent..tostring(t))
+            end
+        end
+    end
+    if (type(t)=="table") then
+        print(tostring(t).." {")
+        sub_print_r(t,"  ")
+        print("}")
+    else
+        sub_print_r(t,"  ")
+    end
+    print()
+end
+
 function tabley.merge(t1, t2, overwrite)
 	for k, v in pairs(t2) do
 		if overwrite or t1[k] == nil then

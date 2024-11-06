@@ -6,10 +6,7 @@ function DungeonObject:new(x, y)
 	self:add_update_signals()
 	-- self:set_update(false)
 	self:init_basic_physics()
-end
-
-function DungeonObject:make_pickupable()
-	self.pickupable = true
+	self.drag = 0.08
 end
 
 return DungeonObject

@@ -84,41 +84,6 @@ function graphics.load()
 	-- 	load_textures(true)
 	-- end)
 
-	graphics.palette = {
-		black = graphics.color_from_html("02040a"),
-		white = graphics.color_from_html("ffffff"),
-		lightred = graphics.color_from_html("f7aaaa"),
-		brown = graphics.color_from_html("883425"),
-		terracotta = graphics.color_from_html("ca6845"),
-		peach = graphics.color_from_html("ffd8b3"),
-		orange = graphics.color_from_html("ff8800"),
-		gold = graphics.color_from_html("f6c319"),
-		hazel = graphics.color_from_html("856e13"),
-		puke = graphics.color_from_html("a6ac17"),
-		yellow = graphics.color_from_html("f3f967"),
-		lime = graphics.color_from_html("9feb26"),
-		forest = graphics.color_from_html("1e7f44"),
-		turquoise = graphics.color_from_html("83eec6"),
-		seagreen = graphics.color_from_html("0dcc8b"),
-		darkgreen = graphics.color_from_html("00261b"),
-		skyblue = graphics.color_from_html("82c6ff"),
-		darkskyblue = graphics.color_from_html("3c95e9"),
-		blue = graphics.color_from_html("151e2f"),
-		navyblue = graphics.color_from_html("0d1c4a"),
-		darkblue = graphics.color_from_html("151e2f"),
-		darkgreyblue = graphics.color_from_html("474c6c"),
-		greyblue = graphics.color_from_html("646dac"),
-		lilac = graphics.color_from_html("b488ff"),
-		darkpurple = graphics.color_from_html("472b6d"),
-		purple = graphics.color_from_html("7521e3"),
-		lightpink = graphics.color_from_html("e5baf3"),
-		magenta = graphics.color_from_html("d655db"),
-		maroon = graphics.color_from_html("820b2e"),
-		salmon = graphics.color_from_html("f17589"),
-		red = graphics.color_from_html("e2383d"),
-		darkred = graphics.color_from_html("420a0b"),
-	}
-
 	graphics.load_textures(false)
 
 	local font_paths = filesystem.get_files_of_type("assets/font", "ttf", true)
@@ -237,12 +202,18 @@ end
 function graphics.set_color(r, g, b, a)
 	if type(r) == "table" then
 		if g ~= nil then
-			r.a = g
+			a = g
+		else
+			if a == nil then
+				a = 1.0
+			end
 		end
 		g = r.g
 		b = r.b
-		a = r.a
 		r = r.r
+		if a == nil then 
+			a = r.a
+		end
 	end
 	love.graphics.setColor(r, g, b, a)
 end
@@ -321,16 +292,19 @@ end
 
 function graphics.clear(r, g, b, a)
 	if type(r) == "table" then
-		if g == nil then 
-			g = 1.0
-		end
-		if r.a == nil then
-			r.a = g
+		if g ~= nil then
+			a = g
+		else
+			if a == nil then
+				a = 1.0
+			end
 		end
 		g = r.g
 		b = r.b
-		a = r.a or g
 		r = r.r
+		if a == nil then 
+			a = r.a
+		end
 	end
 	love.graphics.clear(r, g, b, a)
 end
@@ -367,6 +341,9 @@ function graphics.new_image_data(path)
 	return love.image.newImageData(path)
 end
 
+function graphics.points(...)
+	love.graphics.points(...)
+end
 
 function graphics.circle(mode, x, y, radius, segments)
 	love.graphics.circle(mode, x, y, radius, segments)
@@ -397,6 +374,13 @@ function graphics.print(text, x, y, r, sx, sy, ox, oy, kx, ky)
 	graphics.pop()
 end
 
+function graphics.draw_collision_box(rect, color, alpha)
+	love.graphics.setColor(color.r, color.g, color.b, alpha * 0.125)
+	love.graphics.rectangle("fill", rect.x, rect.y, rect.width, rect.height)
+	love.graphics.setColor(color.r, color.g, color.b, alpha)
+	love.graphics.rectangle("line", rect.x, rect.y, rect.width, rect.height)
+end
+
 function graphics.reset()
 	love.graphics.reset()
 end
@@ -405,4 +389,43 @@ function graphics.set_shader(shader)
 	love.graphics.setShader(shader)
 end
 
+graphics.palette = {
+	black = graphics.color_from_html("02040a"),
+	white = graphics.color_from_html("ffffff"),
+	lightred = graphics.color_from_html("f7aaaa"),
+	brown = graphics.color_from_html("883425"),
+	terracotta = graphics.color_from_html("ca6845"),
+	peach = graphics.color_from_html("ffd8b3"),
+	orange = graphics.color_from_html("ff8800"),
+	gold = graphics.color_from_html("f6c319"),
+	hazel = graphics.color_from_html("856e13"),
+	puke = graphics.color_from_html("a6ac17"),
+	yellow = graphics.color_from_html("f3f967"),
+	lime = graphics.color_from_html("9feb26"),
+	forest = graphics.color_from_html("1e7f44"),
+	turquoise = graphics.color_from_html("83eec6"),
+	seagreen = graphics.color_from_html("0dcc8b"),
+	darkgreen = graphics.color_from_html("00261b"),
+	skyblue = graphics.color_from_html("82c6ff"),
+	darkskyblue = graphics.color_from_html("3c95e9"),
+	blue = graphics.color_from_html("151e2f"),
+	navyblue = graphics.color_from_html("0d1c4a"),
+	darkblue = graphics.color_from_html("151e2f"),
+	darkgreyblue = graphics.color_from_html("474c6c"),
+	greyblue = graphics.color_from_html("646dac"),
+	lilac = graphics.color_from_html("b488ff"),
+	darkpurple = graphics.color_from_html("472b6d"),
+	purple = graphics.color_from_html("7521e3"),
+	pink = graphics.color_from_html("e5baf3"),
+	magenta = graphics.color_from_html("d655db"),
+	maroon = graphics.color_from_html("820b2e"),
+	salmon = graphics.color_from_html("f17589"),
+	red = graphics.color_from_html("e2383d"),
+	darkred = graphics.color_from_html("420a0b"),
+}
+
+graphics.palette.green = graphics.color_from_html("9feb26")
+
+
 return graphics
+

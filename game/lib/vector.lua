@@ -262,11 +262,9 @@ function Vec3:distance_squared(b)
     return dx * dx + dy * dy + dz * dz
 end
 
-
 function Vec3:clone()
 	return Vec3(self.x, self.y, self.z)
 end
-
 
 -- Vec2 In-place Methods
 

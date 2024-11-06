@@ -9,9 +9,6 @@ palette = nil
 textures = nil
 
 
-local accumulated_time = 0
-local frame_time = 1 / conf.fixed_tickrate
-
 local function step(dt)
 	if love.update then love.update(dt) end -- will pass 0 if love.timer is disabled
 
@@ -30,6 +27,9 @@ function love.run()
 		love.math.setRandomSeed(os.time())
 	end
 
+	local accumulated_time = 0
+	local frame_time = 1 / conf.fixed_tickrate
+	
 	if love.load then love.load(love.arg.parseGameArguments(arg), arg) end
 
 	-- We don't want the first frame's dt to include time taken by love.load.
@@ -99,9 +99,8 @@ function love.update(dt)
 		dbg("memory use (kB)", floor(collectgarbage("count")))
 	end
 	
-	if input.debug_count_memory_pressed then 
-		local count = debug.type_count()
-		print(count)
+	if debug.enabled and input.debug_count_memory_pressed then 
+		table.pretty_print(debug.type_count())
 	end
 	input.update(dt)
 	game.update(dt)

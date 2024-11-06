@@ -12,6 +12,12 @@ function Rect.centered(x, y, width, height)
 	return Rect(x - width / 2, y - height / 2, width, height)
 end
 
+function Rect:center_to(x, y)
+	self.x = x - self.width / 2
+	self.y = y - self.height / 2
+	return self
+end
+
 -- Define addition for rect position shift
 function Rect.__add(a, b)
     return Rect(a.x + b.x, a.y + b.y, a.width, a.height)
@@ -53,10 +59,10 @@ function Rect:contains(point)
 end
 
 function Rect:intersects(other)
-    return not (self.x + self.width < other.x or
-                self.y + self.height < other.y or
-                self.x > other.x + other.width or
-                self.y > other.y + other.height)
+	return self.x < other.x + other.width and
+		   self.x + self.width > other.x and
+		   self.y < other.y + other.height and
+		   self.y + self.height > other.y
 end
 
 function Rect:move(dx, dy)

@@ -4,7 +4,6 @@ Sequencer = Object:extend()
 
 -- Example usage: 
 --[[
-
 s:start(
 	s:chain(
 		-- wait for one second
@@ -23,7 +22,6 @@ s:start(
 		function() print("goodbye") end
 	)
 )
-
 ]]
 
 function Sequencer:new()
@@ -38,15 +36,29 @@ function Sequencer:start(func)
 	self:init_coroutine(co)
 end
 
-function Sequencer:chain(...)
-	local funcs = {...}
+-- function Sequencer:chain_funcs(funcs)
+-- 	for _, func in ipairs(funcs) do
+-- 		self:call(func)
+-- 	end
+-- end
+
+-- function Sequencer:chain(...)
+-- 	local funcs = {...}
+-- 	local func = (function()
+-- 		self:chain_funcs(funcs)
+-- 	end)
+-- 	return func
+-- end
+
+function Sequencer:do_while(condition, f)
+
 	local func = (function()
-		for _, func in ipairs(funcs) do
-			self:call(func)
+		while condition() do
+			self:call(f)
 		end
 	end)
 
-	return func
+	self:start(func)
 end
 
 function Sequencer:start_chain(...)
@@ -56,18 +68,12 @@ end
 function Sequencer:loop(func, times)
 	assert(times == nil or type(times) == "number", "times must be a number")
 	if times == nil then
-		return function()
-			while true do
-				func()
-				coroutine.yield()
-			end
+		while true do
+			self:call(func)
 		end
 	end
-	return function()
-		for i = 1, times do
-			func()
-			coroutine.yield()
-		end
+	for i = 1, times do
+		self:call(func)
 	end
 end
 
@@ -99,30 +105,26 @@ function Sequencer:update(dt)
 end
 
 function Sequencer:wait(duration)
-	return function()
-		local start = self.elapsed
-		local finish = self.elapsed + duration
-		while self.elapsed < finish do
-			coroutine.yield()
-		end
+	local start = self.elapsed
+	local finish = self.elapsed + duration
+	while self.elapsed < finish do
+		coroutine.yield()
 	end
 end
 
 function Sequencer:tween(func, value_start, value_end, duration, easing, step)
-	return function()
-		local start = self.elapsed
-		local finish = self.elapsed + duration
-		local ease_func = ease(easing)
+	local start = self.elapsed
+	local finish = self.elapsed + duration
+	local ease_func = ease(easing)
 
-		if step == nil then
-			step = 0
-		end
+	if step == nil then
+		step = 0
+	end
 
-		while self.elapsed < finish do
-			local t = ease_func(stepify_safe((self.elapsed - start) / duration, step))
-			func(value_start + t * (value_end - value_start))
-			coroutine.yield()
-		end
+	while self.elapsed < finish do
+		local t = clamp(ease_func(stepify_safe((self.elapsed - start) / duration, step)), 0, 1)
+		func(value_start + t * (value_end - value_start))
+		coroutine.yield()
 	end
 end
 
@@ -144,25 +146,28 @@ end
 
 function Sequencer:wait_for(func)
 	if Object.is(func, Signal) then
-		return function()
-			self:suspend(self.current_chain)
-			func:connect(function() self:resume(self.current_chain) end)
-			coroutine.yield()
+		self:suspend(self.current_chain)
+		if Object.is(func, GameObjectSignal) then 
+			func:connect(nil, function() self:resume(self.current_chain) end, true)
+		else
+			func:connect(function() self:resume(self.current_chain) end, true)
 		end
+		return
 	end
-	return function()
-		while not func() do
-			coroutine.yield()
-		end
+	while not func() do
+		coroutine.yield()
 	end
 end
 
 function Sequencer:call(func)
 	local co = coroutine.create(func)
 	while coroutine.status(co) ~= "dead" do
-		local status, err = coroutine.resume(co)
+		local status, val = coroutine.resume(co)
 		if not status then
-			error(err)
+			error(val)
+		end
+		if val then 
+			self:call(val)
 		end
 		coroutine.yield()
 	end

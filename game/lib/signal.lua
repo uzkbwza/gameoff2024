@@ -1,5 +1,8 @@
 Signal = Object:extend()
 
+local connected_listeners = {}
+
+
 function Signal:new()
 	self.connected_listeners = {}
 end

@@ -105,7 +105,7 @@ function GameScene:draw()
 
 	if debug.can_draw() then 
 		for _, obj in ipairs(self.draw_objects) do
-			obj:debug_draw_bounds()
+			obj:debug_draw_bounds_shared()
 		end
 		for _, obj in ipairs(self.draw_objects) do
 			obj:debug_draw_shared()
@@ -143,6 +143,7 @@ function GameScene:draw_shared()
 
 	graphics.set_color(1, 1, 1, 1)
     graphics.scale(zoom, zoom)
+    -- graphics.translate((offset.x), (offset.y))
     graphics.translate(floor(offset.x), floor(offset.y))
     self:draw()
     graphics.pop()
@@ -193,6 +194,10 @@ function GameScene:get_base_scene()
 end
 
 function GameScene:add_object(obj)
+	if obj.scene then 
+		obj.scene:remove_object(obj)
+	end
+
     obj.scene = self
 	obj.base_scene = self:get_base_scene()
     add_to_array(self.objects, self.objects_indices, obj)
@@ -200,7 +205,7 @@ function GameScene:add_object(obj)
 	self:add_to_update_tables(obj)
 
     if obj.visibility_changed then
-        obj.visibility_changed:connect(function()
+        obj.visibility_changed:connect(nil, function()
             if obj.visible then
                 add_to_array(self.draw_objects, self.draw_indices, obj)
             else
@@ -210,7 +215,7 @@ function GameScene:add_object(obj)
     end
 
     if obj.update_changed then
-        obj.update_changed:connect(function()
+        obj.update_changed:connect(nil, function()
             if not obj.static then
                 add_to_array(self.update_objects, self.update_indices, obj)
             else
@@ -219,7 +224,7 @@ function GameScene:add_object(obj)
         end)
     end
 
-    obj.destroyed:connect(function() self:remove_object(obj) end, true)
+    obj.destroyed:connect(nil, function() self:remove_object(obj) end, true)
 
 	if obj.is_bump_object then 
 		obj:set_bump_world(self.bump_world)
@@ -227,6 +232,12 @@ function GameScene:add_object(obj)
 
     obj:enter_shared()
 	obj.added:emit()
+	if obj.children then 
+		for _, child in ipairs(obj.children) do
+			child:tpv_to(obj.pos)
+			self:add_object(child)
+		end
+	end
 
     return obj
 end
@@ -258,6 +269,7 @@ function GameScene:remove_object(obj)
 		obj:set_bump_world(nil)
 	end
 	obj.removed:emit()
+	obj:prune_signals()
 end
 
 return GameScene

@@ -100,7 +100,7 @@ function game.update(dt)
 	end
 
 	for _, v in ipairs(game.scene_stack) do
-		v:update_shared(dt)
+		v:update_shared(dt)	
 		if v.blocks_logic then
 			break
 		end

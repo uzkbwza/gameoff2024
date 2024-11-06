@@ -18,7 +18,9 @@ require "lib.sequencer"
 require "lib.random_crap"
 
 GameObject = require "obj.game_object"
+GameObjectSignal = require "obj.game_object_signal"
 GameScene = require "scene.game_scene"
+Effect = require "fx.effect"
 require "lib.anim"
 
 require "datastructure.bst"
@@ -46,7 +48,7 @@ local conf = {
 	use_fixed_delta = false,
 	fixed_tickrate = 60,
 	max_delta = math.huge,
-	max_fixed_ticks_per_frame = 5,
+	max_fixed_ticks_per_frame = 10,
 
 	-- input
 	input_actions = {
@@ -81,7 +83,6 @@ local conf = {
 				axis = "lefty",
 				dir = 1
 			}
-
 		},
 
 		move_left = {

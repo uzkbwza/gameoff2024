@@ -88,7 +88,7 @@ function MainGameScene:create_player(x, y)
 
 	local player = obj.PlayerObject(x, y)
 	
-	player.destroyed:connect(function()
+	player.destroyed:connect(nil, function()
 		self.player = nil
 	end, true)
 
@@ -143,22 +143,14 @@ function MainGameScene:setup_states()
 
 			enter = function(go, next_room, x, y)
 				local s = self.sequencer
-				s:start_chain(
-					s:tween_property(self, "fade_alpha", 0, 1, 5, "linear", 0.5),
-					-- s:wait(5),
-					function() 
-						self:switch_room(next_room, x, y) 
-						self.fade_alpha = 1
-					end,
-					s:wait(5),
-					s:tween_property(self, "fade_alpha", 1, 0, 5, "linear", 0.5),
-					-- s:wait(5),
-					function() 
-						go("Update") 
-					end
-				)
-				-- self:switch_room(next_room, x, y)
-				-- go("Update")
+				s:start(function()
+					s:tween_property(self, "fade_alpha", 0, 1, 5, "linear", 0.5)
+					self:switch_room(next_room, x, y)
+					s:wait(5)
+					s:tween_property(self, "fade_alpha", 1, 0, 5, "linear", 0.5)
+					self.fade_alpha = 0
+					go("Update")
+				end)
 			end
 		}
 	}

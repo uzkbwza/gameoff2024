@@ -16,11 +16,12 @@ function Camera:follow(obj)
 	if obj == nil then
 		return
 	end
-	
-	obj.destroyed:connect(function()
+
+	obj.destroyed:connect(self, function()
 		self.following = nil
 	end)
-	obj.removed:connect(function()
+
+	obj.removed:connect(self, function()
 		self.following = nil
 	end)
 end
