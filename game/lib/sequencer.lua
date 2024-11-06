@@ -4,24 +4,22 @@ Sequencer = Object:extend()
 
 -- Example usage: 
 --[[
-s:start(
-	s:chain(
+s:start(function()
 		-- wait for one second
 		s:wait(60),
 		-- print hello
-		function() print("hello") end,
+		print("hello")
 		-- tween my position to the left over a second
 		s:tween_property(self.pos, "x", self.pos.x, -30, 60.0, "inOutQuad"),
 		-- wait until i move back to the right
 		s:wait_for(function() return self.pos.x >= 0 end),
 		-- print hello again
-		function() print("hello again") end,
+		print("hello again")
 		-- wait for the self.died signal to fire, presumably when i die
 		s:wait_for(self.died),
 		-- print goodbye
-		function() print("goodbye") end
-	)
-)
+		print("goodbye")
+end)
 ]]
 
 function Sequencer:new()
