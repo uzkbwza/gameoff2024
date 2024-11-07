@@ -105,6 +105,7 @@ function graphics.color_from_html(str)
 		r = tonumber("0x" .. string.sub(str, 1, 2)) / 255,
 		g = tonumber("0x" .. string.sub(str, 3, 4)) / 255,
 		b = tonumber("0x" .. string.sub(str, 5, 6)) / 255,
+		a = 1
 	}
 end
 
@@ -205,14 +206,14 @@ function graphics.set_color(r, g, b, a)
 			a = g
 		else
 			if a == nil then
-				a = 1.0
+				a = r.a
 			end
 		end
 		g = r.g
 		b = r.b
 		r = r.r
-		if a == nil then 
-			a = r.a
+		if a == nil then
+			a = 1.0
 		end
 	end
 	love.graphics.setColor(r, g, b, a)
@@ -296,14 +297,14 @@ function graphics.clear(r, g, b, a)
 			a = g
 		else
 			if a == nil then
-				a = 1.0
+				a = r.a
 			end
 		end
 		g = r.g
 		b = r.b
 		r = r.r
-		if a == nil then 
-			a = r.a
+		if a == nil then
+			a = 1.0
 		end
 	end
 	love.graphics.clear(r, g, b, a)

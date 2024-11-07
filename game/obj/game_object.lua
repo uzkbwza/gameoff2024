@@ -30,6 +30,7 @@ function GameObject:new(x, y)
 	self.scale = Vec2(1, 1)
 	
 	self._update_functions = {}
+	self._draw_functions = {}
 	
 	self.scene = nil
 	
@@ -72,7 +73,17 @@ function GameObject:add_elapsed_ticks()
 end
 
 function GameObject:add_update_function(func)
+	if self._update_functions == nil then
+		self._update_functions = {}
+	end
 	table.insert(self._update_functions, func)
+end
+
+function GameObject:add_draw_function(func)
+	if self._draw_functions == nil then
+		self._draw_functions = {}
+	end
+	table.insert(self._draw_functions, func)
 end
 
 -- does not affect transform, only scene traversal
@@ -92,10 +103,10 @@ end
 
 function GameObject:update_shared(dt, ...)
 	-- assert(self.update ~= nil, "GameObject:update_shared() called but no update function implemented")
-	self:update(dt, ...)
 	for _, func in ipairs(self._update_functions) do
 		func(self, dt, ...)
 	end
+	self:update(dt, ...)
 end
 
 function GameObject:add_update_signals()
@@ -218,6 +229,18 @@ function GameObject:area_exited(other)
 
 end
 
+function GameObject:get_overlapping_objects_in_rect(rect, object_filter)
+	local objects = {}
+	rect = rect + self.pos
+	local query = self.bump_world:queryRect(rect.x, rect.y, rect.width, rect.height, object_filter)
+	for _, v in pairs(query) do
+		if rect:intersects(v.collision_rect + v.pos) then
+			table.insert(objects, v)
+		end
+	end
+	return objects
+end
+
 function GameObject:get_closest_overlapping_object(rect, object_filter)
 	local closest = nil
 	local closest_dist = math.huge
@@ -271,8 +294,9 @@ function GameObject:bump_init(info_table)
 	local track_overlaps = info_table.track_overlaps
 
 	if track_overlaps then
+		self.tracks_overlaps = true
 		self.overlaps = {}
-		self:add_update_function(GameObject.bump_track_overlaps)
+		self:add_update_function(self.bump_track_overlaps)
 	end
 
 	if info_table.solid == nil then 
@@ -442,6 +466,11 @@ function GameObject:draw_shared(...)
 	love.graphics.push()
 
 	self:graphics_transform()
+
+	for _, func in ipairs(self._draw_functions) do
+		func(self, ...)
+	end
+
 	self:draw(...)
 
 	love.graphics.pop()

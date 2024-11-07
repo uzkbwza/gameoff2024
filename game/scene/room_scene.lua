@@ -24,7 +24,7 @@ function RoomScene:new(x, y, data)
 		return a.pos.y + a.z_index < b.pos.y + b.z_index
 	end
 
-	self:set_update(false)
+	-- self:set_update(false)
 	self:hide()
 
 end
@@ -110,7 +110,8 @@ function RoomScene:build_from_tile(tile, x, y)
 
 	if tile.exit then
 		local processed = self:process_exit_string(tile.exit)
-		local exit = obj.Exit(pos.x, pos.y, TILE_SIZE, tile.exit, processed)
+		local class = (tile.torch_door and obj.TorchDoor or obj.Exit)
+		local exit = class(pos.x, pos.y, TILE_SIZE, tile.exit, processed)
 		local enter_pos = pos
 
 		exit.side = processed.facing_direction == "right" or processed.facing_direction == "left"
@@ -130,12 +131,15 @@ function RoomScene:build_from_tile(tile, x, y)
 		}, processed)
 		
 		self:add_object(exit)
+		if tile.start_openable then
+			exit:set_openable(true)
+		end
 	end
 
 	if tile.torch then 
 		local torch = self:add_object(obj.Torch(pos.x, pos.y, TILE_SIZE))
-		if tile.lit then 
-			torch:light()
+		if tile.on_fire then 
+			torch:light_flame()
 		end
 	end
 end

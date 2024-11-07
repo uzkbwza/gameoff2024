@@ -10,22 +10,27 @@ function Torch:new(x, y)
 
 	self.is_torch = true
 
-	self:mix_in(mixins.Pickupable)
-	self:mix_in(mixins.Flammable)
-	
 	self:bump_init{
 		rect = Rect.centered(0, 0, 8, 8),
 		solid = false,
 		track_overlaps = true,
 	}
-
-	-- self:light()
+	
+	self:mix_in(mixins.Pickupable)
+	self:mix_in(mixins.Flammable)
 
 end
 
-
 function Torch:draw()
-	graphics.draw_centered(self.lit and textures.torch_lit or textures.torch)
+	graphics.draw_centered(self.on_fire and textures.torch_lit or textures.torch)
+end
+
+function Torch:on_interact()
+	if self.on_fire then
+		self:extinguish()
+	else
+		self:light_flame()
+	end
 end
 
 return Torch

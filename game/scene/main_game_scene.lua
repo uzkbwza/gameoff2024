@@ -62,7 +62,7 @@ function MainGameScene:switch_room(room, player_x, player_y)
 	if self.current_room then
 		self.current_room:remove_player()
 		self.current_room:hide()
-		self.current_room:set_update(false)
+		-- self.current_room:set_update(false)
 	end
 
 	self.current_room = room
@@ -126,7 +126,7 @@ function MainGameScene:setup_states()
 			name = "Update",
 
 			enter = function() 
-				self.current_room:set_update(true)
+				-- self.current_room:set_update(true)
 			end,
 
 			update = function() 
@@ -134,7 +134,7 @@ function MainGameScene:setup_states()
 			end,
 
 			exit = function()
-				self.current_room:set_update(false)
+				-- self.current_room:set_update(false)
 			end
 		},
 

@@ -20,8 +20,10 @@ end
 function Object:implement(...)
   for _, cls in pairs({...}) do
     for k, v in pairs(cls) do
-      if self[k] == nil and type(v) == "function" and k ~= "_init" then
-        self[k] = v
+      if type(v) == "function" and k ~= "_init" then
+		if self[k] == nil then 
+        	self[k] = v
+		end
       end
     end
   end
@@ -29,7 +31,9 @@ end
 
 function Object:mix_in(cls, ...)
 	self:implement(cls)
-	cls._init(self, ...)
+	if cls._init then
+		cls._init(self, ...)
+	end
 end
 
 function Object:is(T)

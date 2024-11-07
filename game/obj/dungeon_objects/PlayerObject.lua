@@ -11,7 +11,13 @@ function PlayerObject:new(x, y)
 	self:bump_init{
 		rect = Rect.centered(0, 0, 5, 5),
 		solid=false, 
-		track_overlaps=true
+		track_overlaps=true,
+		filter = function(item, other) 
+			if self.holding == other then 
+				return "cross" 
+			end
+			return self.default_bump_filter(item, other)
+		end
 	}
 
 	self:add_signal("exit_bumped")
@@ -51,7 +57,9 @@ function PlayerObject:update(dt)
 
 		self.holding:move_toward(self.pos.x + self.hold_offset.x, self.pos.y + self.hold_offset.y, hold_speed * dt)
 		-- self.holding:move_to(hx, hy)
-		self.holding.vel:mul_in_place(0.0)
+		if self.holding.is_simple_physics_object then
+			self.holding.vel:mul_in_place(0.0)
+		end
 		if self.holding.pos:distance_to(self.pos) > hold_dist * 4 then
 			self:drop_item()
 		end
@@ -75,7 +83,7 @@ function PlayerObject:update(dt)
 		end
 	end
 
-	if input.debug_count_memory_pressed then 
+	if input.debug_count_memory_pressed then
 		table.pretty_print(self.signals)
 	end
 end
@@ -83,8 +91,8 @@ end
 function PlayerObject:use_held_item()
 	if self.holding == nil then return end
 	if self.holding.is_usable then
-		self.holding:use()
-		if self.holding.drop_on_use then
+		local should_drop = self.holding:on_use(self)
+		if should_drop then
 			self:drop_item()
 		end
 	end
@@ -94,7 +102,7 @@ function PlayerObject:interact()
 	local obj = self:get_closest_overlapping_object(
 		self.interact_rect,
 		function(o) 
-			return (o.is_interactable) and o ~= self.holding
+			return (o.on_interact) and o ~= self.holding
 		end
 	)
 	if obj == nil then return end
@@ -103,14 +111,7 @@ function PlayerObject:interact()
 	-- 	self:pickup(obj)
 	-- 	return
 	-- end
-
-	if obj.is_torch then 
-		if obj.lit then
-			obj:extinguish()
-		else
-			obj:light()
-		end
-	end
+	obj:on_interact(self)
 end
 
 function PlayerObject:pickup(obj)
@@ -140,7 +141,7 @@ function PlayerObject:drop_item()
 		-- self.holding:move_to(self.pos.x, self.pos.y)
 		self.holding.noclip = false
 		-- self.holding:move_to(self.pos.x + self.hold_offset.x, self.pos.y + self.hold_offset.y)
-		if self.holding.is_simple_physics_object then 
+		if self.holding.is_simple_physics_object then
 			self.holding.vel.x = self.vel.x
 			self.holding.vel.y = self.vel.y
 		end
@@ -153,7 +154,7 @@ end
 
 function PlayerObject:area_entered(other)
 	if other == nil then return end
-	if other.exit_to then
+	if other.exit_to and other.openable then
 		self.exit_bumped:emit(other.exit_to)
 	end
 	-- if other.floor_type then
